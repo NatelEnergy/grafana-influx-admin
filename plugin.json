@@ -1,0 +1,32 @@
+{
+  "type": "panel",
+  "name": "Influx Admin",
+  "id": "natel-influx-admin",
+
+  "info": {
+    "description": "InfluxDB admin for grafana",
+    "author": {
+      "name": "Natel Energy"
+    },
+    "keywords": [ "influxdb", "admin" ],
+    "logos": {
+      "small": "src/img/influx_admin_logo.svg",
+      "large": "src/img/influx_admin_logo.svg"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/NatelEnergy/grafana-influx-admin"},
+      {"name": "MIT License",  "url": "https://github.com/NatelEnergy/grafana-influx-admin/blob/master/LICENSE"}
+    ],
+    "screenshots": [
+      { "name": "Query Management", "path": "src/img/screenshot-management.png" },
+      { "name": "Query Console",    "path": "src/img/screenshot-console.png"    }
+    ],
+    "version": "0.0.1",
+    "updated": "2016-02-01"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "3.x.x",
+    "plugins": [ ]
+  }
+}
