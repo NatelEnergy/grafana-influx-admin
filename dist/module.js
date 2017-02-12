@@ -1,9 +1,9 @@
 'use strict';
 
-System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/plotly'], function (_export, _context) {
+System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'lodash', 'moment'], function (_export, _context) {
   "use strict";
 
-  var MetricsPanelCtrl, _, moment, angular, Plotly, _createClass, PlotlyPanelCtrl;
+  var config, appEvents, PanelCtrl, _, moment, _createClass, InfluxAdminCtrl;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -36,16 +36,16 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
   }
 
   return {
-    setters: [function (_appPluginsSdk) {
-      MetricsPanelCtrl = _appPluginsSdk.MetricsPanelCtrl;
+    setters: [function (_appCoreConfig) {
+      config = _appCoreConfig.default;
+    }, function (_appCoreApp_events) {
+      appEvents = _appCoreApp_events.default;
+    }, function (_appPluginsSdk) {
+      PanelCtrl = _appPluginsSdk.PanelCtrl;
     }, function (_lodash) {
       _ = _lodash.default;
     }, function (_moment) {
       moment = _moment.default;
-    }, function (_angular) {
-      angular = _angular.default;
-    }, function (_externalPlotly) {
-      Plotly = _externalPlotly;
     }],
     execute: function () {
       _createClass = function () {
@@ -66,145 +66,120 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
         };
       }();
 
-      _export('PanelCtrl', PlotlyPanelCtrl = function (_MetricsPanelCtrl) {
-        _inherits(PlotlyPanelCtrl, _MetricsPanelCtrl);
+      _export('PanelCtrl', InfluxAdminCtrl = function (_PanelCtrl) {
+        _inherits(InfluxAdminCtrl, _PanelCtrl);
 
-        function PlotlyPanelCtrl($scope, $injector, $q, $rootScope, $timeout, $window, timeSrv, uiSegmentSrv) {
-          _classCallCheck(this, PlotlyPanelCtrl);
+        function InfluxAdminCtrl($scope, $injector, $q, $rootScope, $timeout) {
+          _classCallCheck(this, InfluxAdminCtrl);
 
-          var _this = _possibleConstructorReturn(this, (PlotlyPanelCtrl.__proto__ || Object.getPrototypeOf(PlotlyPanelCtrl)).call(this, $scope, $injector));
+          var _this = _possibleConstructorReturn(this, (InfluxAdminCtrl.__proto__ || Object.getPrototypeOf(InfluxAdminCtrl)).call(this, $scope, $injector));
 
-          _this.$rootScope = $rootScope;
-          _this.timeSrv = timeSrv;
-          _this.uiSegmentSrv = uiSegmentSrv;
+          _this.datasourceSrv = $injector.get('datasourceSrv');
+          _this.injector = $injector;
           _this.q = $q;
-
-          _this.sizeChanged = true;
-          _this.initalized = false;
-
-          _this.$tooltip = $('<div id="tooltip" class="graph-tooltip">');
-
-          var dcfg = {
-            settings: {
-              type: 'scatter',
-              mode: 'lines+markers',
-              displayModeBar: false,
-              line: {
-                color: '#005f81',
-                width: 6,
-                dash: 'solid',
-                shape: 'linear'
-              },
-              marker: {
-                size: 30,
-                symbol: 'circle',
-                color: '#33B5E5',
-                colorscale: 'YIOrRd',
-                line: {
-                  color: '#DDD',
-                  width: 0
-                },
-                showscale: true
-              },
-              color_ramp: true
-            },
-            layout: {
-              autosize: false,
-              showlegend: false,
-              legend: { "orientation": "v" },
-              dragmode: 'lasso', // (enumerated: "zoom" | "pan" | "select" | "lasso" | "orbit" | "turntable" ) 
-              hovermode: 'closest',
-              plot_bgcolor: "#1f1d1d",
-              paper_bgcolor: 'rgba(0,0,0,0)', // transparent?
-              font: {
-                color: '#D8D9DA',
-                family: '"Open Sans", Helvetica, Arial, sans-serif'
-              },
-              margin: {
-                t: 0,
-                b: 45,
-                l: 65,
-                r: 20
-              },
-              xaxis: {
-                showgrid: true,
-                zeroline: false,
-                type: 'linear',
-                gridcolor: '#444444',
-                range: [null, null]
-              },
-              yaxis: {
-                showgrid: true,
-                zeroline: false,
-                type: 'linear',
-                gridcolor: '#444444',
-                range: [null, null]
-              }
-            }
-          };
-
-          // Make sure it has the default settings (may have more!)
-          _this.panel.pconfig = $.extend(true, dcfg, _this.panel.pconfig);
-
-          var cfg = _this.panel.pconfig;
-          _this.trace = {
-            x: [],
-            y: [],
-            z: []
-          };
-          _this.layout = $.extend(true, {}, _this.panel.pconfig.layout);
+          _this.query = "SHOW DIAGNOSTICS";
 
           _this.events.on('init-edit-mode', _this.onInitEditMode.bind(_this));
           _this.events.on('render', _this.onRender.bind(_this));
-          _this.events.on('data-received', _this.onDataReceived.bind(_this));
-          _this.events.on('data-error', _this.onDataError.bind(_this));
           _this.events.on('panel-initialized', _this.onPanelInitalized.bind(_this));
           _this.events.on('refresh', _this.onRefresh.bind(_this));
 
-          angular.element($window).bind('resize', _this.onResize.bind(_this));
+          // All influxdb datasources
+          _this.dbs = [];
+          _.forEach(config.datasources, function (val, key) {
+            if ("influxdb" == val.type) {
+              if (key == config.defaultDatasource) {
+                _this.dbs.unshift(key);
+              } else {
+                _this.dbs.push(key);
+              }
+            }
+          });
 
-          _this.onConfigChanged();
+          // pick a datasource
+          if (_.isNil(_this.panel.datasource)) {
+            if (_this.dbs.length > 0) {
+              _this.panel.datasource = _this.dbs[0];
+            }
+          }
           return _this;
         }
 
-        _createClass(PlotlyPanelCtrl, [{
-          key: 'onResize',
-          value: function onResize() {
-            this.sizeChanged = true;
-          }
-        }, {
-          key: 'onDataError',
-          value: function onDataError(err) {
-            this.seriesList = [];
-            this.render([]);
-            console.log("onDataError", err);
-          }
-        }, {
-          key: 'onRefresh',
-          value: function onRefresh() {
-            console.log("onRefresh()");
-
-            if (this.graph && this.initalized) {
-              Plotly.redraw(this.graph);
-            }
-          }
-        }, {
+        _createClass(InfluxAdminCtrl, [{
           key: 'onInitEditMode',
           value: function onInitEditMode() {
-            this.addEditorTab('Options', 'public/plugins/natel-plotly-panel/editor.html', 1);
+            this.addEditorTab('Options', 'public/plugins/natel-influx-admin/editor.html', 1);
             this.editorTabIndex = 1;
-            this.refresh();
-            this.segs = {
-              symbol: this.uiSegmentSrv.newSegment({ value: this.panel.pconfig.settings.marker.symbol })
-            };
           }
         }, {
-          key: 'onSegsChanged',
-          value: function onSegsChanged() {
-            this.panel.pconfig.settings.marker.symbol = this.segs.symbol.value;
-            this.onConfigChanged();
+          key: 'setQuery',
+          value: function setQuery(q) {
+            this.query = q;
 
-            console.log(this.segs.symbol, this.panel.pconfig);
+            console.log("Set Query: ", q);
+          }
+        }, {
+          key: 'askToKillQuery',
+          value: function askToKillQuery(qinfo) {
+            var _this2 = this;
+
+            appEvents.emit('confirm-modal', {
+              title: 'Kill Influx Query',
+              text: 'Are you sure you want to kill this query?',
+              text2: qinfo.query,
+              icon: 'fa-trash',
+              confirmText: 'yes',
+              yesText: 'Kill Query',
+              onConfirm: function onConfirm() {
+                _this2.datasourceSrv.get(_this2.panel.datasource).then(function (ds) {
+                  ds._seriesQuery('kill query ' + qinfo.id).then(function (res) {
+                    console.log('killed', qinfo, res);
+                  });
+                });
+              }
+            });
+            return;
+          }
+        }, {
+          key: 'onSubmit',
+          value: function onSubmit() {
+            var _this3 = this;
+
+            this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+              console.log('ds', ds, _this3.query);
+              ds._seriesQuery(_this3.query).then(function (data) {
+                console.log("RSP", _this3.query, data);
+                _this3.rsp = data;
+              });
+
+              ds._seriesQuery('SHOW QUERIES').then(function (data) {
+
+                _this3.currentQueries = [];
+                // convert the time (string) to seconds
+                _.forEach(data.results[0].series[0].values, function (res) {
+                  var durr = res[3];
+                  var unit = durr[durr.length - 1];
+                  var mag = 0;
+                  if (unit == 's') {
+                    mag = 1;
+                  } else if (unit == 'm') {
+                    mag = 60;
+                  } else if (unit == 'h') {
+                    mag = 60 * 60;
+                  }
+                  var secs = parseInt(durr.substring(0, durr.length - 1)) * mag;
+
+                  _this3.currentQueries.push({
+                    'secs': secs,
+                    'query': res[1],
+                    'db': res[2],
+                    'id': res[0]
+                  });
+                });
+
+                console.log("QUERIES", _this3.currentQueries);
+              });
+            });
           }
         }, {
           key: 'onPanelInitalized',
@@ -214,216 +189,21 @@ System.register(['app/plugins/sdk', 'lodash', 'moment', 'angular', './external/p
         }, {
           key: 'onRender',
           value: function onRender() {
-            var _this2 = this;
-
-            if (!this.initalized) {
-              var s = this.panel.pconfig.settings;
-
-              var options = {
-                showLink: false,
-                displaylogo: false,
-                displayModeBar: s.displayModeBar,
-                modeBarButtonsToRemove: ['sendDataToCloud'] //, 'select2d', 'lasso2d']
-              };
-
-              var data = [this.trace];
-              var rect = this.graph.getBoundingClientRect();
-
-              var old = this.layout;
-              this.layout = $.extend(true, {}, this.panel.pconfig.layout);
-              this.layout.height = this.height;
-              this.layout.width = rect.width;
-              if (old) {
-                this.layout.xaxis.title = old.xaxis.title;
-                this.layout.yaxis.title = old.yaxis.title;
-              }
-
-              Plotly.newPlot(this.graph, data, this.layout, options);
-
-              this.graph.on('plotly_click', function (data) {
-                for (var i = 0; i < data.points.length; i++) {
-                  var idx = data.points[i].pointNumber;
-                  var ts = _this2.trace.ts[idx];
-                  // console.log( 'CLICK!!!', ts, data );
-                  var msg = data.points[i].x.toPrecision(4) + ", " + data.points[i].y.toPrecision(4);
-                  _this2.$rootScope.appEvent('alert-success', [msg, '@ ' + _this2.dashboard.formatDate(moment(ts))]);
-                }
-              });
-
-              if (false) {
-                this.graph.on('plotly_hover', function (data, xxx) {
-                  console.log('HOVER!!!', data, xxx, _this2.mouse);
-                  if (data.points.length > 0) {
-                    var idx = 0;
-                    var pt = data.points[idx];
-
-                    var body = '<div class="graph-tooltip-time">' + pt.pointNumber + '</div>';
-                    body += "<center>";
-                    body += pt.x + ', ' + pt.y;
-                    body += "</center>";
-
-                    _this2.$tooltip.html(body).place_tt(_this2.mouse.pageX + 10, _this2.mouse.pageY);
-                  }
-                }).on('plotly_unhover', function (data) {
-                  _this2.$tooltip.detach();
-                });
-              }
-
-              this.graph.on('plotly_selected', function (data) {
-
-                if (data.points.length == 0) {
-                  console.log("Nothign Selected", data);
-                  return;
-                }
-
-                console.log("SELECTED", data);
-
-                var min = Number.MAX_SAFE_INTEGER;
-                var max = Number.MIN_SAFE_INTEGER;
-
-                for (var i = 0; i < data.points.length; i++) {
-                  var idx = data.points[i].pointNumber;
-                  var ts = _this2.trace.ts[idx];
-                  min = Math.min(min, ts);
-                  max = Math.max(max, ts);
-                }
-
-                min -= 1000;
-                max += 1000;
-
-                var range = { from: moment.utc(min), to: moment.utc(max) };
-
-                console.log('SELECTED!!!', min, max, data.points.length, range);
-
-                _this2.timeSrv.setTime(range);
-
-                // rebuild the graph after query
-                if (_this2.graph) {
-                  Plotly.Plots.purge(_this2.graph);
-                  _this2.graph.innerHTML = '';
-                  _this2.initalized = false;
-                }
-              });
-            } else {
-              Plotly.redraw(this.graph);
-            }
-
-            if (this.sizeChanged && this.graph && this.layout) {
-              var rect = this.graph.getBoundingClientRect();
-              this.layout.width = rect.width;
-              Plotly.Plots.resize(this.graph);
-            }
-
-            this.sizeChanged = false;
-            this.initalized = true;
             console.log("onRender");
           }
         }, {
-          key: 'onDataReceived',
-          value: function onDataReceived(dataList) {
-            this.trace.x = [];
-            this.trace.y = [];
-            this.trace.z = [];
-            this.trace.ts = [];
-
-            if (dataList.length < 2) {
-              console.log("No data", dataList);
-            } else {
-              //   console.log( "plotly data", dataList);
-
-              var srcX = dataList[0].datapoints;
-              var srcY = dataList[1].datapoints;
-
-              if (srcX.length != srcY.length) {
-                throw "Metrics must have the same count! (x!=y)";
-              }
-
-              var srcZ = null;
-              if (dataList.length > 2) {
-                srcZ = dataList[2].datapoints;
-                if (srcZ.length != srcY.length) {
-                  throw "Metrics must have the same count! (z!=y)";
-                }
-              }
-
-              this.layout.xaxis.title = dataList[0].target;
-              this.layout.yaxis.title = dataList[1].target;
-
-              var cfg = this.panel.pconfig;
-              this.trace.marker = $.extend(true, {}, cfg.settings.marker);
-              this.trace.line = $.extend(true, {}, cfg.settings.line);
-              if (cfg.settings.color_ramp) {
-                this.trace.marker.color = [];
-              }
-
-              var len = srcX.length;
-              for (var i = 0; i < len; i++) {
-                this.trace.ts.push(srcX[i][1]);
-                this.trace.x.push(srcX[i][0]);
-                this.trace.y.push(srcY[i][0]);
-                if (cfg.settings.color_ramp) {
-                  this.trace.marker.color.push(i);
-                }
-                if (srcZ) {
-                  this.trace.z.push(srcZ[i][0]);
-                }
-              }
-
-              // console.log( " >> trace", this.trace, srcZ);
-            }
-
-            this.render();
-          }
-        }, {
-          key: 'onConfigChanged',
-          value: function onConfigChanged() {
-            console.log("Config changed...");
-            if (this.graph) {
-              Plotly.Plots.purge(this.graph);
-              this.graph.innerHTML = '';
-              this.initalized = false;
-            }
-
-            var cfg = this.panel.pconfig;
-            this.trace.type = cfg.settings.type;
-            this.trace.mode = cfg.settings.mode;
-            this.refresh();
-          }
-        }, {
-          key: 'link',
-          value: function link(scope, elem, attrs, ctrl) {
-            var _this3 = this;
-
-            this.graph = elem.find('.plotly-spot')[0];
-            this.initalized = false;
-
-            elem.on('mousemove', function (evt) {
-              _this3.mouse = evt;
-            });
-
-            console.log("PLOTLY inside link", this.graph);
-          }
-        }, {
-          key: 'getSymbolSegs',
-          value: function getSymbolSegs() {
-            var _this4 = this;
-
-            var txt = ["circle", "circle-open", "circle-dot", "circle-open-dot", "square", "square-open", "square-dot", "square-open-dot", "diamond", "diamond-open", "diamond-dot", "diamond-open-dot", "cross", "cross-open", "cross-dot", "cross-open-dot", "x", "x-open", "x-dot", "x-open-dot", "triangle-up", "triangle-up-open", "triangle-up-dot", "triangle-up-open-dot", "triangle-down", "triangle-down-open", "triangle-down-dot", "triangle-down-open-dot", "triangle-left", "triangle-left-open", "triangle-left-dot", "triangle-left-open-dot", "triangle-right", "triangle-right-open", "triangle-right-dot", "triangle-right-open-dot", "triangle-ne", "triangle-ne-open", "triangle-ne-dot", "triangle-ne-open-dot", "triangle-se", "triangle-se-open", "triangle-se-dot", "triangle-se-open-dot", "triangle-sw", "triangle-sw-open", "triangle-sw-dot", "triangle-sw-open-dot", "triangle-nw", "triangle-nw-open", "triangle-nw-dot", "triangle-nw-open-dot", "pentagon", "pentagon-open", "pentagon-dot", "pentagon-open-dot", "hexagon", "hexagon-open", "hexagon-dot", "hexagon-open-dot", "hexagon2", "hexagon2-open", "hexagon2-dot", "hexagon2-open-dot", "octagon", "octagon-open", "octagon-dot", "octagon-open-dot", "star", "star-open", "star-dot", "star-open-dot", "hexagram", "hexagram-open", "hexagram-dot", "hexagram-open-dot", "star-triangle-up", "star-triangle-up-open", "star-triangle-up-dot", "star-triangle-up-open-dot", "star-triangle-down", "star-triangle-down-open", "star-triangle-down-dot", "star-triangle-down-open-dot", "star-square", "star-square-open", "star-square-dot", "star-square-open-dot", "star-diamond", "star-diamond-open", "star-diamond-dot", "star-diamond-open-dot", "diamond-tall", "diamond-tall-open", "diamond-tall-dot", "diamond-tall-open-dot", "diamond-wide", "diamond-wide-open", "diamond-wide-dot", "diamond-wide-open-dot", "hourglass", "hourglass-open", "bowtie", "bowtie-open", "circle-cross", "circle-cross-open", "circle-x", "circle-x-open", "square-cross", "square-cross-open", "square-x", "square-x-open", "diamond-cross", "diamond-cross-open", "diamond-x", "diamond-x-open", "cross-thin", "cross-thin-open", "x-thin", "x-thin-open", "asterisk", "asterisk-open", "hash", "hash-open", "hash-dot", "hash-open-dot", "y-up", "y-up-open", "y-down", "y-down-open", "y-left", "y-left-open", "y-right", "y-right-open", "line-ew", "line-ew-open", "line-ns", "line-ns-open", "line-ne", "line-ne-open", "line-nw", "line-nw-open"];
-
-            var segs = [];
-            _.forEach(txt, function (val) {
-              segs.push(_this4.uiSegmentSrv.newSegment(val));
-            });
-            return this.q.when(segs);
+          key: 'onRefresh',
+          value: function onRefresh() {
+            console.log("onRefresh");
           }
         }]);
 
-        return PlotlyPanelCtrl;
-      }(MetricsPanelCtrl));
+        return InfluxAdminCtrl;
+      }(PanelCtrl));
 
-      PlotlyPanelCtrl.templateUrl = 'module.html';
+      InfluxAdminCtrl.templateUrl = 'module.html';
 
-      _export('PanelCtrl', PlotlyPanelCtrl);
+      _export('PanelCtrl', InfluxAdminCtrl);
     }
   };
 });

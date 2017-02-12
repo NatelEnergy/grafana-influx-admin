@@ -1,4 +1,5 @@
 import config from 'app/core/config';
+import appEvents from 'app/core/app_events';
 
 import {PanelCtrl} from  'app/plugins/sdk';
 
@@ -12,62 +13,103 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.datasourceSrv = $injector.get('datasourceSrv');
     this.injector = $injector;
     this.q = $q;
-    this.scope = $scope;
-    this.scope.query = "SHOW DIAGNOSTICS";
+    this.query = "SHOW DIAGNOSTICS";
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
   
-    this.db = null;
+    
+    // All influxdb datasources
     this.dbs = [];
     _.forEach(config.datasources, (val, key) => {
       if ("influxdb" == val.type) {
-        this.dbs.push(key);
-
         if(key == config.defaultDatasource) {
-          this.db = key;
+          this.dbs.unshift(key);
+        }
+        else {
+          this.dbs.push(key);
         }
       }
     });
-    if(this.db == null) {
-      this.db = this.dbs[0];
-    }
-    console.log("CFG", this.db, this.dbs);
 
-    this.onSubmit();
+    // pick a datasource
+    if( _.isNil( this.panel.datasource ) ) {
+      if(this.dbs.length > 0) {
+        this.panel.datasource = this.dbs[0];
+      }
+    }
   }
+
 
 
   onInitEditMode() {
-    this.controllers = [];
-    _.forEach( config.datasources, (val,key) => {
-      if( "natel-controls" == val.type ) {
-        this.controllers.push( key );
-      }
-    });
-
-    // TODO, hide the normal metrics panel
-    this.editorTabs.splice(1,1); // remove the 'Metrics Tab'
     this.addEditorTab('Options', 'public/plugins/natel-influx-admin/editor.html',1);
     this.editorTabIndex = 1;
-
-    this.onQueryChanged();
   }
 
   setQuery(q) {
-    this.scope.query = q;
+    this.query = q;
 
     console.log("Set Query: ", q)
   }
 
+  askToKillQuery(qinfo) {
+    appEvents.emit('confirm-modal', {
+      title: 'Kill Influx Query',
+      text: 'Are you sure you want to kill this query?',
+      text2: qinfo.query,
+      icon: 'fa-trash',
+      confirmText: 'yes',
+      yesText: 'Kill Query',
+      onConfirm: () => {
+        this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
+          ds._seriesQuery( 'kill query '+qinfo.id ).then( (res) => {
+            console.log( 'killed', qinfo, res );
+          });
+        });
+      }
+    });
+    return;
+  }
+
   onSubmit() {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
-      console.log( 'ds');
-      ds._seriesQuery( this.scope.query ).then((data) => {
-        console.log("RSP", data);
+      console.log( 'ds', ds, this.query);
+      ds._seriesQuery( this.query ).then((data) => {
+        console.log("RSP", this.query, data);
         this.rsp = data;
+      });
+
+      ds._seriesQuery( 'SHOW QUERIES' ).then((data) => {
+
+        this.currentQueries = [];
+        // convert the time (string) to seconds
+        _.forEach(data.results[0].series[0].values, (res) => {
+          let durr = res[3];
+          let unit = durr[durr.length - 1];
+          let mag = 0;
+          if(unit=='s') {
+            mag = 1;
+          }
+          else if(unit=='m') {
+            mag = 60;
+          }
+          else if(unit=='h') {
+            mag = 60*60;
+          }
+          let secs = parseInt( durr.substring(0,durr.length-1)) * mag;
+
+          this.currentQueries.push( {
+            'secs': secs,
+            'query': res[1],
+            'db': res[2],
+            'id': res[0]
+          });
+        });
+
+        console.log("QUERIES", this.currentQueries);
       });
     });
   }

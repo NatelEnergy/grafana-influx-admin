@@ -3,7 +3,7 @@
 
 <form ng-submit="ctrl.onSubmit()">
   <div class="input-group">
-    <input type="text" class="gf-form-input" ng-model="query" />
+    <input type="text" class="gf-form-input" ng-model="ctrl.query" />
   </div><!-- /input-group -->
 
 <input type="submit" class="btn btn-secondary" value="Query" />
@@ -44,23 +44,27 @@
 <br/>
 <br/>
 
+<div ng-repeat="qinfo in ctrl.currentQueries | orderBy:'-secs'"
+  style="border:2px solid red;"
+  ng-click="ctrl.askToKillQuery(qinfo)">
+  {{ qinfo | json }}
+</div>
+
 <div ng-repeat="res in ctrl.rsp">
 <div ng-repeat="rrr in res">
-<div ng-repeat="series in rrr.series">
+<div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
-  <h2>{{series.name}}</h2>
-  <table class="filter-table form-inline">
-  <tr>
-    <th ng-repeat="col in series.columns">
+  <h3 class="page-heading">{{series.name}}</h3>
+  <table class="grafana-options-table">
+  <tr class="admin-settings-section">
+    <td ng-repeat="col in series.columns track by $index">
     {{ col }} &nbsp; 
-    </th>
+    </td>
   </tr>
 
-  <tr ng-repeat="row in series.values">
-  {{ row | json }}
-
-    <td ng-repeat="cell in row">
-      {{ cell }} &nbsp;
+  <tr ng-repeat="row in series.values track by $index">
+    <td ng-repeat="col in row track by $index">
+      {{ col }} &nbsp;
     </td>
   </tr>
   </table>

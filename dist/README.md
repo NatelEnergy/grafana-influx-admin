@@ -1,8 +1,7 @@
-## Plot.ly Panel for Grafana
+## InfluxDB admin
 
-Render metrics using the plot.ly javascript framework
-
-
+Since influx 1.1, the simple admin ui has been deprecated.  It did not do much, but was quite useful
+for sanity checks
 
 
 ### Screenshots
@@ -19,9 +18,7 @@ Render metrics using the plot.ly javascript framework
 
 
 
-### Roadmap... hopefully soon
- - Better metric resolution
- - Map metric names to x,y (z), color, and text
- - Support plotly timeseries
+### Roadmap... 
+ - maybe this should be in the standard influxdb datasource?
 
 
