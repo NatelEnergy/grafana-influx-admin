@@ -1,0 +1,23 @@
+<div class="editor-row">
+
+<div ng-show="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
+  <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
+</div>
+
+<div class="gf-form">
+  <textarea ng-model="ctrl.writeDataText" class="gf-form-input" rows="4"
+    placeholder="measurement,tag=val,tag2=val2 field=80,field2=1.23 1465839830100400200"
+    ></textarea>
+</div>
+
+<button 
+  ng-click="ctrl.writeData()" 
+  ng-class="ctrl.writeDataText.length > 0 ? 'btn btn-secondary' : 'btn btn-inverse'">
+  <i ng-show= "ctrl.writing" class="fa fa-spinner fa-spin"></i>
+  <i ng-show="!ctrl.writing" class="fa fa-pencil-square-o" aria-hidden="true"></i>
+  Write
+</button>
+&nbsp;&nbsp;
+<a ng-show="!ctrl.writing" href="https://docs.influxdata.com/influxdb/v1.2/write_protocols/line_protocol_tutorial/">Line Protocol</a>
+
+</div>

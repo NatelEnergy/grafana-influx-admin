@@ -1,6 +1,6 @@
 <div ng-switch="ctrl.panel.mode">
   <div ng-switch-when="current">
-            
+
       <div class="search-results-container" ng-style="{height: ctrl.height, border: '0px solid red'}">
         <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
           ng-click="ctrl.askToKillQuery( qinfo )"
@@ -26,43 +26,47 @@
       </div>
 
   </div>
-  <div ng-switch-when="write">
-    <h1>WRITE</h1>
-  </div>
   <div ng-switch-when="query">
 
     <form class="gf-form" ng-submit="ctrl.onSubmit()">
-      <a class="gf-form-label tight-form-func dropdown-toggle" 
-        gf-dropdown="ctrl.getQueryTemplates();" 
-        data-toggle="dropdown"
-        data-placement="top"><i class="fa fa-plus"></i></a>
-      <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.query" placeholder="Enter your influx Query" />
-      <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i class="fa fa-search"></i></a>
+        <a class="gf-form-label tight-form-func dropdown-toggle" 
+          gf-dropdown="ctrl.getQueryTemplates();" 
+          data-toggle="dropdown"
+          data-placement="top"><i class="fa fa-bookmark-o"></i></a>
+        <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.query" placeholder="Enter your influx Query" />
+        <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i class="fa fa-search"></i></a>
+      </div>
     </form>
+    <div>
+      <span style="float:right;">1.3s</span>
+    </div>
+    <div style="clear:both;"></div>
 
-
+    <div ng-show="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
+      <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
+    </div>
 
     <div ng-repeat="res in ctrl.rsp">
-    <div ng-repeat="rrr in res">
-    <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
+      <div ng-repeat="rrr in res">
+        <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
-      <h3 class="page-heading">{{series.name}}</h3>
-      <table class="grafana-options-table">
-      <tr class="admin-settings-section">
-        <td ng-repeat="col in series.columns track by $index">
-        {{ col }} &nbsp; 
-        </td>
-      </tr>
+          <h3 class="page-heading">{{series.name}}</h3>
+          <table class="grafana-options-table">
+          <tr class="admin-settings-section">
+            <td ng-repeat="col in series.columns track by $index">
+            {{ col }} &nbsp; 
+            </td>
+          </tr>
 
-      <tr ng-repeat="row in series.values track by $index">
-        <td ng-repeat="col in row track by $index">
-          {{ col }} &nbsp;
-        </td>
-      </tr>
-      </table>
+          <tr ng-repeat="row in series.values track by $index">
+            <td ng-repeat="col in row track by $index">
+              {{ col }} &nbsp;
+            </td>
+          </tr>
+          </table>
 
-    </div>
-    </div>
+        </div>
+      </div>
     </div>
 
 
