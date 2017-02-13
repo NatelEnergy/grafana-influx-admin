@@ -1,75 +1,75 @@
+<div ng-switch="ctrl.panel.mode">
+  <div ng-switch-when="current">
+            
+      <div class="search-results-container" ng-style="{height: ctrl.height, border: '0px solid red'}">
+        <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
+          ng-click="ctrl.askToKillQuery( qinfo )"
+          class="search-item pointer" 
+          title="Kill Query" 
+          href="#">
+          <span class="search-result-tags">
+            &nbsp;&nbsp;<i class="fa fa-ban"></i>
+          </span>
+          <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
+            {{ qinfo.time }}
+          </span>&nbsp;
+          <span class="label label-tag" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48);">
+            {{ qinfo.db }}
+          </span>&nbsp;
+          <span class="label label-tag" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48);">
+            {{ qinfo.id }}
+          </span>&nbsp;
+          <span class="search-result-link">
+            {{ qinfo.query }}
+          </span>
+        </a>
+      </div>
+
+  </div>
+  <div ng-switch-when="write">
+    <h1>WRITE</h1>
+  </div>
+  <div ng-switch-when="query">
+
+    <form class="gf-form" ng-submit="ctrl.onSubmit()">
+      <a class="gf-form-label tight-form-func dropdown-toggle" 
+        gf-dropdown="ctrl.getQueryTemplates();" 
+        data-toggle="dropdown"
+        data-placement="top"><i class="fa fa-plus"></i></a>
+      <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.query" placeholder="Enter your influx Query" />
+      <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i class="fa fa-search"></i></a>
+    </form>
 
 
 
-<form ng-submit="ctrl.onSubmit()">
-  <div class="input-group">
-    <input type="text" class="gf-form-input" ng-model="ctrl.query" />
-  </div><!-- /input-group -->
+    <div ng-repeat="res in ctrl.rsp">
+    <div ng-repeat="rrr in res">
+    <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
-<input type="submit" class="btn btn-secondary" value="Query" />
+      <h3 class="page-heading">{{series.name}}</h3>
+      <table class="grafana-options-table">
+      <tr class="admin-settings-section">
+        <td ng-repeat="col in series.columns track by $index">
+        {{ col }} &nbsp; 
+        </td>
+      </tr>
 
-<div class="dropdown" style="display:inline;">
-  <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">
-    Select Query
-    <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu">
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW DATABASES');">Show Databases</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('CREATE DATABASE &quot;db_name&quot;');">Create Database</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('DROP DATABASE &quot;db_name&quot;');">Drop Database</a></li>
-      <li class="divider"></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW MEASUREMENTS');">Show Measurements</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW TAG KEYS FROM &quot;measurement_name&quot;');">Show Tag Keys</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;');">Show Tag Values</a></li>
-      <li class="divider"></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW RETENTION POLICIES ON &quot;db_name&quot;');">Show Retention Policies</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT');">Create Retention Policy</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;');">Drop Retention Policy</a></li>
-      <li class="divider"></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW CONTINUOUS QUERIES');">Show Continuous Queries</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END');">Create Continuous Query</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;');">Drop Continuous Query</a></li>
-      <li class="divider"></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW USERS');">Show Users</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('CREATE USER &quot;username&quot; WITH PASSWORD \'password\'');">Create User</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('CREATE USER &quot;username&quot; WITH PASSWORD \'password\' WITH ALL PRIVILEGES');">Create Admin User</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('DROP USER &quot;username&quot;');">Drop User</a></li>
-      <li class="divider"></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW STATS');">Show Stats</a></li>
-      <li><a href="#" ng-click="ctrl.setQuery('SHOW DIAGNOSTICS');">Show Diagnostics</a></li>
-  </ul>
+      <tr ng-repeat="row in series.values track by $index">
+        <td ng-repeat="col in row track by $index">
+          {{ col }} &nbsp;
+        </td>
+      </tr>
+      </table>
+
+    </div>
+    </div>
+    </div>
+
+
+  </div>
+  <div ng-switch-default>
+    <h1>Unknown mode: {{ctrl.panel.mode}}</h1>
+  </div>
 </div>
-</form>
 
-<br/>
-<br/>
-
-<div ng-repeat="qinfo in ctrl.currentQueries | orderBy:'-secs'"
-  style="border:2px solid red;"
-  ng-click="ctrl.askToKillQuery(qinfo)">
-  {{ qinfo | json }}
-</div>
-
-<div ng-repeat="res in ctrl.rsp">
-<div ng-repeat="rrr in res">
-<div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
-
-  <h3 class="page-heading">{{series.name}}</h3>
-  <table class="grafana-options-table">
-  <tr class="admin-settings-section">
-    <td ng-repeat="col in series.columns track by $index">
-    {{ col }} &nbsp; 
-    </td>
-  </tr>
-
-  <tr ng-repeat="row in series.values track by $index">
-    <td ng-repeat="col in row track by $index">
-      {{ col }} &nbsp;
-    </td>
-  </tr>
-  </table>
-
-</div>
-</div>
-</div>
 

@@ -1,5 +1,17 @@
 <div class="editor-row">
 
+<div class="gf-form">
+  <span class="gf-form-label width-7">Type</span>
+  <div class="gf-form-select-wrapper max-width-23">
+    <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.modeChanged()">
+      <option value="current">Current Queries</option>
+      <option value="write">Write Data</option>
+      <option value="query">Query Window</option>
+    </select>
+  </div>
+</div>
+
+
 <pre>
 {{ ctrl.panel | json }}
 </pre>
