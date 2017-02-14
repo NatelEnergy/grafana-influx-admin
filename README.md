@@ -6,10 +6,10 @@ for sanity checks
 
 ### Screenshots
 
-![Current Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-current.png)
-![Kill Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-kill.png)
-![Query Window](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-query.png)
-![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png)
+![Current Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-current.png =300x)
+![Kill Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-kill.png =300x)
+![Query Window](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-query.png =300x)
+![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png =300x)
 
 
 #### Changelog
