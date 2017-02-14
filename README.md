@@ -1,7 +1,7 @@
 ## InfluxDB admin
 
-Since influx 1.1, the simple admin ui has been deprecated.  It did not do much, but was quite useful
-for sanity checks
+Since influx 1.1, the simple admin ui has been deprecated.  This panel replaces that functionality.  It also has special 
+display for `SHOW QUERIES` and an easy way to kill them.
 
 
 ### Screenshots
@@ -14,7 +14,7 @@ for sanity checks
 
 #### Changelog
 
-##### v0.0.1
+##### v0.0.2
 
 - First working version
 
@@ -22,5 +22,4 @@ for sanity checks
 
 ### Roadmap... 
  - maybe this should be in the standard influxdb datasource?
-
 
