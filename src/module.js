@@ -62,6 +62,15 @@ class InfluxAdminCtrl extends PanelCtrl {
     }
   }
 
+
+  isShowQueryWindow() {
+    return this.panel.mode == 'query';
+  }
+
+  isShowCurrentQueries() {
+    return this.panel.mode == 'current';
+  }
+
   onInitEditMode() {
     this.addEditorTab('Options', 'public/plugins/natel-influx-admin/editor.html',1);
     this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin/write.html',2);
@@ -192,6 +201,7 @@ class InfluxAdminCtrl extends PanelCtrl {
   }
 
   onSubmit() {
+    var startTime = Date.now();
     this.error = null;
     this.runningQuery = true;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
@@ -200,10 +210,12 @@ class InfluxAdminCtrl extends PanelCtrl {
         console.log("RSP", this.query, data);
         this.rsp = data;
         this.runningQuery = false;
+        this.queryTime = (Date.now() - startTime) / 1000.0;
       }, (err) => {
         console.log( 'ERROR with series query', err );
         this.runningQuery = false;
         this.error = err.message;
+        this.queryTime = (Date.now() - startTime) / 1000.0;
       });
     });
   }

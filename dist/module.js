@@ -127,6 +127,16 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
         }
 
         _createClass(InfluxAdminCtrl, [{
+          key: 'isShowQueryWindow',
+          value: function isShowQueryWindow() {
+            return this.panel.mode == 'query';
+          }
+        }, {
+          key: 'isShowCurrentQueries',
+          value: function isShowCurrentQueries() {
+            return this.panel.mode == 'current';
+          }
+        }, {
           key: 'onInitEditMode',
           value: function onInitEditMode() {
             this.addEditorTab('Options', 'public/plugins/natel-influx-admin/editor.html', 1);
@@ -246,6 +256,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           value: function onSubmit() {
             var _this5 = this;
 
+            var startTime = Date.now();
             this.error = null;
             this.runningQuery = true;
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
@@ -254,10 +265,12 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 console.log("RSP", _this5.query, data);
                 _this5.rsp = data;
                 _this5.runningQuery = false;
+                _this5.queryTime = (Date.now() - startTime) / 1000.0;
               }, function (err) {
                 console.log('ERROR with series query', err);
                 _this5.runningQuery = false;
                 _this5.error = err.message;
+                _this5.queryTime = (Date.now() - startTime) / 1000.0;
               });
             });
           }

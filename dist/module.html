@@ -1,5 +1,5 @@
-<div ng-switch="ctrl.panel.mode">
-  <div ng-switch-when="current">
+
+  <div ng-show="ctrl.isShowCurrentQueries()">
 
       <div class="search-results-container" ng-style="{height: ctrl.height, border: '0px solid red'}">
         <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
@@ -25,8 +25,9 @@
         </a>
       </div>
 
-  </div>
-  <div ng-switch-when="query">
+  </div>  
+  <div ng-show="ctrl.isShowQueryWindow()">
+
 
     <form class="gf-form" ng-submit="ctrl.onSubmit()">
         <a class="gf-form-label tight-form-func dropdown-toggle" 
@@ -34,11 +35,11 @@
           data-toggle="dropdown"
           data-placement="top"><i class="fa fa-bookmark-o"></i></a>
         <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.query" placeholder="Enter your influx Query" />
-        <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i class="fa fa-search"></i></a>
+        <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : 'fa fa-search'"></i></a>
       </div>
     </form>
     <div>
-      <span style="float:right;">1.3s</span>
+      <span style="float:right;">{{ ctrl.queryTime }}s</span>
     </div>
     <div style="clear:both;"></div>
 
@@ -46,7 +47,7 @@
       <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
     </div>
 
-    <div ng-repeat="res in ctrl.rsp">
+    <div ng-repeat="res in ctrl.rsp" ng-show="ctrl.isShowQueryWindow()">
       <div ng-repeat="rrr in res">
         <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
@@ -69,11 +70,4 @@
       </div>
     </div>
 
-
-  </div>
-  <div ng-switch-default>
-    <h1>Unknown mode: {{ctrl.panel.mode}}</h1>
-  </div>
 </div>
-
-
