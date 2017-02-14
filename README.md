@@ -6,10 +6,10 @@ for sanity checks
 
 ### Screenshots
 
-![Current Queries](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-current.png)
-![Kill Queries](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-kill.png)
-![Query Window](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-query.png)
-![Write Data](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-write.png)
+![Current Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-current.png)
+![Kill Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-kill.png)
+![Query Window](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-query.png)
+![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png)
 
 
 #### Changelog
