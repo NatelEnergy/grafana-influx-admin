@@ -6,21 +6,23 @@
       <select class="gf-form-input" 
         ng-options="db for db in ctrl.dbs"
         ng-model="ctrl.panel.datasource" 
-        ng-change="ctrl.refresh()">
+        ng-change="ctrl.configChanged()">
       </select>
     </div>
+    &nbsp;&nbsp; {{ ctrl.db.database }}
   </div>
 
   <div class="gf-form">
     <span class="gf-form-label width-7">Display</span>
     <div class="gf-form-select-wrapper max-width-23">
-      <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.modeChanged()">
+      <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.configChanged()">
         <option value="current">Current Queries</option>
         <option value="query">Query Window</option>
       </select>
     </div>
   </div>
 
+<!--
   <div class="gf-form" ng-show="ctrl.panel.mode == 'current'">
     <span class="gf-form-label width-7">Refresh</span>
     input.... 
@@ -29,5 +31,6 @@
   <pre>
   {{ ctrl.panel | json }}
   </pre>
+-->
 
 </div>

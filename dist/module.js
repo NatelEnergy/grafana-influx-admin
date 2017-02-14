@@ -91,7 +91,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           // defaults configs
           var defaults = {
             mode: 'current', // 'write', 'query'
-            updateEvery: 1100
+            updateEvery: 1200
           };
           _this.panel = $.extend(true, defaults, _this.panel);
 
@@ -197,6 +197,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             var _this4 = this;
 
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+              _this4.db = ds;
               ds._seriesQuery('SHOW QUERIES').then(function (data) {
                 var temp = [];
                 _.forEach(data.results[0].series[0].values, function (res) {
@@ -213,23 +214,26 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     mag = 60 * 60;
                   }
                   var secs = parseInt(durr.substring(0, durr.length - 1)) * mag;
-
-                  temp.push({
-                    'secs': secs,
-                    'time': res[3],
-                    'query': res[1],
-                    'db': res[2],
-                    'id': res[0]
-                  });
+                  if (secs == 0 && 'SHOW QUERIES' == res[1]) {
+                    // Don't include the current query
+                    _this4.queryInfo.lastId = res[0];
+                  } else {
+                    temp.push({
+                      'secs': secs,
+                      'time': res[3],
+                      'query': res[1],
+                      'db': res[2],
+                      'id': res[0]
+                    });
+                  }
                 });
 
                 _this4.queryInfo.count++;
                 _this4.queryInfo.last = Date.now();
                 _this4.queryInfo.queries = temp;
-                console.log("QUERIES", _this4.currentQueries);
 
                 // Check if we should refresh the view
-                if ('current' == _this4.panel.mode && _this4.panel.updateEvery > 0) {
+                if (_this4.isShowCurrentQueries() && _this4.panel.updateEvery > 0) {
                   _this4.queryInfo.timer = _this4.$timeout(function () {
                     _this4.updateShowQueries();
                   }, _this4.panel.updateEvery);
@@ -238,10 +242,11 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             });
           }
         }, {
-          key: 'modeChanged',
-          value: function modeChanged() {
+          key: 'configChanged',
+          value: function configChanged() {
             this.error = null;
-            if ('current' == this.panel.mode) {
+            this.db = ds;
+            if (this.isShowCurrentQueries()) {
               this.updateShowQueries();
             }
             this.render();
@@ -249,7 +254,10 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
         }, {
           key: 'getQueryTemplates',
           value: function getQueryTemplates() {
-            return [{ text: 'Show Databases', click: "ctrl.query = 'SHOW DATABASES'" }, { text: 'Create Database', click: "ctrl.query = 'CREATE DATABASE &quot;db_name&quot;'" }, { text: 'Drop Database', click: "ctrl.query = 'DROP DATABASE &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Measurements', click: "ctrl.query = 'SHOW MEASUREMENTS'" }, { text: 'Show Tag Keys', click: "ctrl.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Values', click: "ctrl.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" }, { text: '--' }, { text: 'Show Retention Policies', click: "ctrl.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" }, { text: 'Create Retention Policy', click: "ctrl.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" }, { text: 'Drop Retention Policy', click: "ctrl.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Continuous Queries', click: "ctrl.query = 'SHOW CONTINUOUS QUERIES'" }, { text: 'Create Continuous Query', click: "ctrl.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" }, { text: 'Drop Continuous Query', click: "ctrl.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Users', click: "ctrl.query = 'SHOW USERS'" }, { text: 'Create User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password''" }, { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES'" }, { text: 'Drop User', click: "ctrl.query = 'DROP USER &quot;username&quot;'" }, { text: '--' }, { text: 'Show Stats', click: "ctrl.query = 'SHOW STATS'" }, { text: 'Show Diagnostics', click: "ctrl.query = 'SHOW DIAGNOSTICS'" }];
+            return [{ text: 'Show Databases', click: "ctrl.query = 'SHOW DATABASES'" }, { text: 'Create Database', click: "ctrl.query = 'CREATE DATABASE &quot;db_name&quot;'" }, { text: 'Drop Database', click: "ctrl.query = 'DROP DATABASE &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Measurements', click: "ctrl.query = 'SHOW MEASUREMENTS'" }, { text: 'Show Field Keys', click: "ctrl.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Keys', click: "ctrl.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Values', click: "ctrl.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" }, { text: 'Drop Measurement', click: "ctrl.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" }, { text: '--' }, { text: 'Show Retention Policies', click: "ctrl.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" }, { text: 'Create Retention Policy', click: "ctrl.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" }, { text: 'Drop Retention Policy', click: "ctrl.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Continuous Queries', click: "ctrl.query = 'SHOW CONTINUOUS QUERIES'" }, { text: 'Create Continuous Query', click: "ctrl.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" }, { text: 'Drop Continuous Query', click: "ctrl.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Users', click: "ctrl.query = 'SHOW USERS'" },
+            //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
+            //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
+            { text: 'Drop User', click: "ctrl.query = 'DROP USER &quot;username&quot;'" }, { text: '--' }, { text: 'Show Stats', click: "ctrl.query = 'SHOW STATS'" }, { text: 'Show Diagnostics', click: "ctrl.query = 'SHOW DIAGNOSTICS'" }];
           }
         }, {
           key: 'onSubmit',
@@ -260,14 +268,15 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             this.error = null;
             this.runningQuery = true;
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
-              console.log('ds', ds, _this5.query);
+              //console.log( 'ds', ds, this.query);
+              _this5.db = ds;
               ds._seriesQuery(_this5.query).then(function (data) {
-                console.log("RSP", _this5.query, data);
+                // console.log("RSP", this.query, data);
                 _this5.rsp = data;
                 _this5.runningQuery = false;
                 _this5.queryTime = (Date.now() - startTime) / 1000.0;
               }, function (err) {
-                console.log('ERROR with series query', err);
+                // console.log( 'ERROR with series query', err );
                 _this5.runningQuery = false;
                 _this5.error = err.message;
                 _this5.queryTime = (Date.now() - startTime) / 1000.0;
@@ -277,20 +286,20 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
         }, {
           key: 'onPanelInitalized',
           value: function onPanelInitalized() {
-            console.log("onPanelInitalized()");
+            //console.log("onPanelInitalized()")
           }
         }, {
           key: 'onRender',
           value: function onRender() {
-            console.log("onRender");
+            //console.log("onRender");
           }
         }, {
           key: 'onRefresh',
           value: function onRefresh() {
-            if ('current' == this.panel.mode) {
+            if (this.isShowCurrentQueries()) {
               this.updateShowQueries();
             }
-            console.log("onRefresh");
+            //console.log("onRefresh");
           }
         }]);
 

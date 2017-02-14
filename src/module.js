@@ -27,7 +27,7 @@ class InfluxAdminCtrl extends PanelCtrl {
     // defaults configs
     var defaults = {
       mode: 'current', // 'write', 'query'
-      updateEvery: 1100
+      updateEvery: 1200
     };
     this.panel = $.extend(true, defaults, this.panel );
     
@@ -121,6 +121,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   updateShowQueries() {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
+      this.db = ds;
       ds._seriesQuery( 'SHOW QUERIES' ).then( (data) => {
         var temp = [];
         _.forEach(data.results[0].series[0].values, (res) => {
@@ -139,23 +140,27 @@ class InfluxAdminCtrl extends PanelCtrl {
             mag = 60*60;
           }
           let secs = parseInt( durr.substring(0,durr.length-1)) * mag;
-
-          temp.push( {
-            'secs': secs,
-            'time': res[3],
-            'query': res[1],
-            'db': res[2],
-            'id': res[0]
-          });
+          if(secs == 0 && 'SHOW QUERIES' == res[1]) {
+            // Don't include the current query
+            this.queryInfo.lastId = res[0];
+          }
+          else {
+            temp.push( {
+              'secs': secs,
+              'time': res[3],
+              'query': res[1],
+              'db': res[2],
+              'id': res[0]
+            });
+          }
         });
 
         this.queryInfo.count++;
         this.queryInfo.last = Date.now();
         this.queryInfo.queries = temp;
-        console.log("QUERIES", this.currentQueries);
-
+    
         // Check if we should refresh the view
-        if( 'current' == this.panel.mode && this.panel.updateEvery>0 ) {
+        if( this.isShowCurrentQueries() && this.panel.updateEvery>0 ) {
           this.queryInfo.timer = this.$timeout( () => {
             this.updateShowQueries()
           }, this.panel.updateEvery);
@@ -164,9 +169,10 @@ class InfluxAdminCtrl extends PanelCtrl {
     });
   }
 
-  modeChanged() {
+  configChanged() {
     this.error = null;
-    if('current' == this.panel.mode) {
+    this.db = ds; 
+    if( this.isShowCurrentQueries() ) {
       this.updateShowQueries();
     }
     this.render();
@@ -179,8 +185,10 @@ class InfluxAdminCtrl extends PanelCtrl {
       { text: 'Drop Database',   click: "ctrl.query = 'DROP DATABASE &quot;db_name&quot;'" },
       { text: '--' },
       { text: 'Show Measurements', click: "ctrl.query = 'SHOW MEASUREMENTS'" },
+      { text: 'Show Field Keys',   click: "ctrl.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" },
       { text: 'Show Tag Keys',     click: "ctrl.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" },
       { text: 'Show Tag Values',   click: "ctrl.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" },
+      { text: 'Drop Measurement',  click: "ctrl.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" },
       { text: '--' },
       { text: 'Show Retention Policies', click: "ctrl.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" },
       { text: 'Create Retention Policy', click: "ctrl.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" },
@@ -191,8 +199,8 @@ class InfluxAdminCtrl extends PanelCtrl {
       { text: 'Drop Continuous Query',   click: "ctrl.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" },
       { text: '--' },
       { text: 'Show Users',        click: "ctrl.query = 'SHOW USERS'" },
-      { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password''" },
-      { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES'" },
+  //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
+  //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
       { text: 'Drop User',         click: "ctrl.query = 'DROP USER &quot;username&quot;'" },
       { text: '--' },
       { text: 'Show Stats',       click: "ctrl.query = 'SHOW STATS'" },
@@ -205,14 +213,15 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.error = null;
     this.runningQuery = true;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
-      console.log( 'ds', ds, this.query);
+      //console.log( 'ds', ds, this.query);
+      this.db = ds;
       ds._seriesQuery( this.query ).then((data) => {
-        console.log("RSP", this.query, data);
+       // console.log("RSP", this.query, data);
         this.rsp = data;
         this.runningQuery = false;
         this.queryTime = (Date.now() - startTime) / 1000.0;
       }, (err) => {
-        console.log( 'ERROR with series query', err );
+       // console.log( 'ERROR with series query', err );
         this.runningQuery = false;
         this.error = err.message;
         this.queryTime = (Date.now() - startTime) / 1000.0;
@@ -221,18 +230,18 @@ class InfluxAdminCtrl extends PanelCtrl {
   }
 
   onPanelInitalized() {
-    console.log("onPanelInitalized()")
+    //console.log("onPanelInitalized()")
   }
 
   onRender() {
-    console.log("onRender");
+    //console.log("onRender");
   }
 
   onRefresh() {
-    if( 'current' == this.panel.mode ) {
+    if( this.isShowCurrentQueries() ) {
       this.updateShowQueries();
     }
-    console.log("onRefresh");
+    //console.log("onRefresh");
   }
 }
 InfluxAdminCtrl.templateUrl = 'module.html';

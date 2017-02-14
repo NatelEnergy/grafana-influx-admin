@@ -12,7 +12,7 @@
           </span>
           <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
             {{ qinfo.time }}
-          </span>&nbsp;
+        </span>&nbsp;
           <span class="label label-tag" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48);">
             {{ qinfo.db }}
           </span>&nbsp;
@@ -23,6 +23,16 @@
             {{ qinfo.query }}
           </span>
         </a>
+
+        <div href="#" class="search-item" >
+          No Running Queries
+          <span class="search-result-tags">
+            <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
+              {{ ctrl.queryInfo.lastId }}
+            </span>
+          </span>
+        </div>
+
       </div>
 
   </div>  
@@ -38,7 +48,7 @@
         <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : 'fa fa-search'"></i></a>
       </div>
     </form>
-    <div>
+    <div ng-show="ctrl.queryTime > 0">
       <span style="float:right;">{{ ctrl.queryTime }}s</span>
     </div>
     <div style="clear:both;"></div>
