@@ -1,6 +1,6 @@
 {
   "name": "natel-influx-admin",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "InfluxDB admin in Grafana",
   "main": "src/module.js",
   "scripts": {
@@ -8,8 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "plotly",
-    "scatter",
+    "influx",
+    "influxdb",
     "grafana",
     "plugin",
     "panel"
@@ -18,7 +18,7 @@
   "license": "MIT",
   "repository" : { 
     "type" : "git", 
-    "url" : "https://github.com/NatelEnergy/grafana-plotly-panel.git"
+    "url" : "https://github.com/NatelEnergy/grafana-influx-admin.git"
   },
   "devDependencies": {
     "babel": "~6.5.1",
