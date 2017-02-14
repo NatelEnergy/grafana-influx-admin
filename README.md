@@ -6,9 +6,11 @@ for sanity checks
 
 ### Screenshots
 
-- [Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-scatter.png)
-- [Screenshot of 3d scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-scatter-3d.png)
-- [Screenshot of the options screen](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-options.png)
+![Current Queries](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-current.png)
+![Kill Queries](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-kill.png)
+![Query Window](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-query.png)
+![Write Data](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-write.png)
+
 
 #### Changelog
 

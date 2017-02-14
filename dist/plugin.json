@@ -18,10 +18,12 @@
       {"name": "MIT License",  "url": "https://github.com/NatelEnergy/grafana-influx-admin/blob/master/LICENSE"}
     ],
     "screenshots": [
-      { "name": "Query Management", "path": "src/img/screenshot-management.png" },
-      { "name": "Query Console",    "path": "src/img/screenshot-console.png"    }
+      { "name": "Currnet Queries", "path": "src/img/screenshot-current.png" },
+      { "name": "Kill Query",      "path": "src/img/screenshot-kill.png"    },
+      { "name": "Query Window",    "path": "src/img/screenshot-query.png"   },
+      { "name": "Write Data",      "path": "src/img/screenshot-write.png"   }
     ],
-    "version": "0.0.1",
+    "version": "0.0.2",
     "updated": "2016-02-01"
   },
 

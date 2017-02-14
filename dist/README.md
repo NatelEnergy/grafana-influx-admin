@@ -6,7 +6,7 @@ for sanity checks
 
 ### Screenshots
 
-- [Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-scatter.png)
+- [Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-current.png)
 - [Screenshot of 3d scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-scatter-3d.png)
 - [Screenshot of the options screen](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-options.png)
 
