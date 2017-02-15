@@ -21,7 +21,7 @@
       { "name": "Currnet Queries", "path": "src/img/screenshot-current.png" },
       { "name": "Kill Query",      "path": "src/img/screenshot-kill.png"    },
       { "name": "Query Window",    "path": "src/img/screenshot-query.png"   },
-      { "name": "Options",         "path": "src/img/screenshot-options.png" }
+      { "name": "Options",         "path": "src/img/screenshot-options.png" },
       { "name": "Write Data",      "path": "src/img/screenshot-write.png"   }
     ],
     "version": "0.0.1",
