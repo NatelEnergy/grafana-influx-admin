@@ -1,7 +1,7 @@
 {
   "type": "panel",
   "name": "Influx Admin",
-  "id": "natel-influx-admin",
+  "id": "natel-influx-admin-panel",
 
   "info": {
     "description": "InfluxDB admin for grafana",
@@ -21,9 +21,10 @@
       { "name": "Currnet Queries", "path": "src/img/screenshot-current.png" },
       { "name": "Kill Query",      "path": "src/img/screenshot-kill.png"    },
       { "name": "Query Window",    "path": "src/img/screenshot-query.png"   },
+      { "name": "Options",         "path": "src/img/screenshot-options.png" },
       { "name": "Write Data",      "path": "src/img/screenshot-write.png"   }
     ],
-    "version": "0.0.2",
+    "version": "0.0.1",
     "updated": "2016-02-01"
   },
 

@@ -21,7 +21,7 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.events.on('render', this.onRender.bind(this));
     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
-  
+
     this.writing = false;
 
     // defaults configs
@@ -30,7 +30,7 @@ class InfluxAdminCtrl extends PanelCtrl {
       updateEvery: 1200
     };
     this.panel = $.extend(true, defaults, this.panel );
-    
+
     // All influxdb datasources
     this.dbs = [];
     _.forEach(config.datasources, (val, key) => {
@@ -72,8 +72,8 @@ class InfluxAdminCtrl extends PanelCtrl {
   }
 
   onInitEditMode() {
-    this.addEditorTab('Options', 'public/plugins/natel-influx-admin/editor.html',1);
-    this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin/write.html',2);
+    this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/editor.html',1);
+    this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/write.html',2);
     this.editorTabIndex = 1;
   }
 
@@ -158,7 +158,7 @@ class InfluxAdminCtrl extends PanelCtrl {
         this.queryInfo.count++;
         this.queryInfo.last = Date.now();
         this.queryInfo.queries = temp;
-    
+
         // Check if we should refresh the view
         if( this.isShowCurrentQueries() && this.panel.updateEvery>0 ) {
           this.queryInfo.timer = this.$timeout( () => {
@@ -171,7 +171,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   configChanged() {
     this.error = null;
-    this.db = ds; 
+    this.db = ds;
     if( this.isShowCurrentQueries() ) {
       this.updateShowQueries();
     }

@@ -1,24 +1,23 @@
 ## InfluxDB admin
 
-Since influx 1.1, the simple admin ui has been deprecated.  It did not do much, but was quite useful
-for sanity checks
+This panel duplicates the simple features avaliable in the [Web Admin Interface](https://docs.influxdata.com/influxdb/v1.2/tools/web_admin/).  This UI is now deprecated and disabled by default.
+
+This panel lets you pick see the currently running queries and easily kill them.
+
+This plugin expects there to be at least one InfluxDB datasource configured.
 
 
 ### Screenshots
 
-- [Screenshot of scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-current.png)
-- [Screenshot of 3d scatter plot](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-scatter-3d.png)
-- [Screenshot of the options screen](https://raw.githubusercontent.com/NatelEnergy/natel-plotly-panel/master/src/img/screenshot-options.png)
+|-|-|
+| ![Current Queries](/public/plugins/natel-influx-admin-panel/src/img/screenshot-current.png) | ![Kill Queries](/public/plugins/natel-influx-admin-panel/src/img/screenshot-kill.png) |
 
+![Query Window](/public/plugins/natel-influx-admin-panel/src/img/screenshot-query.png)
+![Options](/public/plugins/natel-influx-admin-panel/src/img/screenshot-options.png)
+![Write Data](/public/plugins/natel-influx-admin-panel/src/img/scree|nshot-write.png)
 #### Changelog
 
 ##### v0.0.1
 
 - First working version
-
-
-
-### Roadmap... 
- - maybe this should be in the standard influxdb datasource?
-
 
