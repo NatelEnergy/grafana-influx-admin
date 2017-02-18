@@ -9,12 +9,12 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 
 ### Screenshots
 
-|-|-|
-| ![Current Queries](/public/plugins/natel-influx-admin-panel/src/img/screenshot-current.png) | ![Kill Queries](/public/plugins/natel-influx-admin-panel/src/img/screenshot-kill.png) |
+![Current Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-current.png)
+![Kill Queries](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-kill.png)
+![Query Window](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-query.png)
+![Options](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-options.png)
+![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png)
 
-![Query Window](/public/plugins/natel-influx-admin-panel/src/img/screenshot-query.png)
-![Options](/public/plugins/natel-influx-admin-panel/src/img/screenshot-options.png)
-![Write Data](/public/plugins/natel-influx-admin-panel/src/img/scree|nshot-write.png)
 #### Changelog
 
 ##### v0.0.1
