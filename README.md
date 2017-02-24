@@ -15,6 +15,12 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 ![Options](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-options.png)
 ![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png)
 
+
+#### TODO
+- Execute the query when the panel loads
+- save the query with the panel  
+
+
 #### Changelog
 
 ##### v0.0.1
