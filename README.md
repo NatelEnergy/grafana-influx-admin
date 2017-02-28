@@ -19,6 +19,7 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 #### TODO
 - Execute the query when the panel loads
 - save the query with the panel  
+- db > measurment > Fields/Tags browser
 
 
 #### Changelog
