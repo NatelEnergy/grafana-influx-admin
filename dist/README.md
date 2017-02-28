@@ -1,6 +1,6 @@
 ## InfluxDB admin
 
-This panel duplicates the simple features avaliable in the [Web Admin Interface](https://docs.influxdata.com/influxdb/v1.2/tools/web_admin/).  This UI is now deprecated and disabled by default.
+This panel duplicates the simple features avaliable in the [Web Admin Interface](https://docs.influxdata.com/influxdb/v1.2/tools/web_admin/).  That UI is now deprecated and disabled by default.
 
 This panel lets you pick see the currently running queries and easily kill them.
 
