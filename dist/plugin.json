@@ -10,8 +10,8 @@
     },
     "keywords": [ "influxdb", "admin" ],
     "logos": {
-      "small": "src/img/influx_admin_logo.svg",
-      "large": "src/img/influx_admin_logo.svg"
+      "small": "img/influx_admin_logo.svg",
+      "large": "img/influx_admin_logo.svg"
     },
     "links": [
       {"name": "Project site", "url": "https://github.com/NatelEnergy/grafana-influx-admin"},
@@ -19,14 +19,14 @@
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
-      { "name": "Currnet Queries", "path": "src/img/screenshot-current.png" },
-      { "name": "Kill Query",      "path": "src/img/screenshot-kill.png"    },
-      { "name": "Query Window",    "path": "src/img/screenshot-query.png"   },
-      { "name": "Options",         "path": "src/img/screenshot-options.png" },
-      { "name": "Write Data",      "path": "src/img/screenshot-write.png"   }
+      { "name": "Current Queries", "path": "img/screenshot-current.png" },
+      { "name": "Kill Query",      "path": "img/screenshot-kill.png"    },
+      { "name": "Query Window",    "path": "img/screenshot-query.png"   },
+      { "name": "Options",         "path": "img/screenshot-options.png" },
+      { "name": "Write Data",      "path": "img/screenshot-write.png"   }
     ],
     "version": "0.0.1",
-    "updated": "2016-02-01"
+    "updated": "2017-02-28"
   },
 
   "dependencies": {
