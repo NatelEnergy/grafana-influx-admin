@@ -19,7 +19,7 @@
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
-      { "name": "Currnet Queries", "path": "src/img/screenshot-current.png" },
+      { "name": "Current Queries", "path": "src/img/screenshot-current.png" },
       { "name": "Kill Query",      "path": "src/img/screenshot-kill.png"    },
       { "name": "Query Window",    "path": "src/img/screenshot-query.png"   },
       { "name": "Options",         "path": "src/img/screenshot-options.png" },
