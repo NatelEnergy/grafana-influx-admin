@@ -77,7 +77,6 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           _this.datasourceSrv = $injector.get('datasourceSrv');
           _this.injector = $injector;
           _this.q = $q;
-          _this.query = "SHOW DIAGNOSTICS";
           _this.$timeout = $timeout;
           _this.$http = $http;
 
@@ -91,9 +90,10 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           // defaults configs
           var defaults = {
             mode: 'current', // 'write', 'query'
+            query: 'SHOW DIAGNOSTICS',
             updateEvery: 1200
           };
-          _this.panel = $.extend(true, defaults, _this.panel);
+          $.extend(true, defaults, _this.panel);
 
           // All influxdb datasources
           _this.dbs = [];
@@ -254,10 +254,34 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
         }, {
           key: 'getQueryTemplates',
           value: function getQueryTemplates() {
-            return [{ text: 'Show Databases', click: "ctrl.query = 'SHOW DATABASES'" }, { text: 'Create Database', click: "ctrl.query = 'CREATE DATABASE &quot;db_name&quot;'" }, { text: 'Drop Database', click: "ctrl.query = 'DROP DATABASE &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Measurements', click: "ctrl.query = 'SHOW MEASUREMENTS'" }, { text: 'Show Field Keys', click: "ctrl.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Keys', click: "ctrl.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Values', click: "ctrl.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" }, { text: 'Drop Measurement', click: "ctrl.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" }, { text: '--' }, { text: 'Show Retention Policies', click: "ctrl.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" }, { text: 'Create Retention Policy', click: "ctrl.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" }, { text: 'Drop Retention Policy', click: "ctrl.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Continuous Queries', click: "ctrl.query = 'SHOW CONTINUOUS QUERIES'" }, { text: 'Create Continuous Query', click: "ctrl.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" }, { text: 'Drop Continuous Query', click: "ctrl.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Users', click: "ctrl.query = 'SHOW USERS'" },
+            return [{ text: 'Show Databases', click: "ctrl.panel.query = 'SHOW DATABASES'" }, { text: 'Create Database', click: "ctrl.panel.query = 'CREATE DATABASE &quot;db_name&quot;'" }, { text: 'Drop Database', click: "ctrl.panel.query = 'DROP DATABASE &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Measurements', click: "ctrl.panel.query = 'SHOW MEASUREMENTS'" }, { text: 'Show Field Keys', click: "ctrl.panel.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Keys', click: "ctrl.panel.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" }, { text: 'Show Tag Values', click: "ctrl.panel.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" }, { text: 'Drop Measurement', click: "ctrl.panel.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" }, { text: '--' }, { text: 'Show Retention Policies', click: "ctrl.panel.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" }, { text: 'Create Retention Policy', click: "ctrl.panel.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" }, { text: 'Drop Retention Policy', click: "ctrl.panel.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Continuous Queries', click: "ctrl.panel.query = 'SHOW CONTINUOUS QUERIES'" }, { text: 'Create Continuous Query', click: "ctrl.panel.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" }, { text: 'Drop Continuous Query', click: "ctrl.panel.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" }, { text: '--' }, { text: 'Show Users', click: "ctrl.panel.query = 'SHOW USERS'" },
             //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
             //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
-            { text: 'Drop User', click: "ctrl.query = 'DROP USER &quot;username&quot;'" }, { text: '--' }, { text: 'Show Stats', click: "ctrl.query = 'SHOW STATS'" }, { text: 'Show Diagnostics', click: "ctrl.query = 'SHOW DIAGNOSTICS'" }];
+            { text: 'Drop User', click: "ctrl.panel.query = 'DROP USER &quot;username&quot;'" }, { text: '--' }, { text: 'Show Stats', click: "ctrl.panel.query = 'SHOW STATS'" }, { text: 'Show Diagnostics', click: "ctrl.panel.query = 'SHOW DIAGNOSTICS'" }];
+          }
+        }, {
+          key: 'isClickableQuery',
+          value: function isClickableQuery() {
+            if ("SHOW MEASUREMENTS" == this.panel.query) {
+              return true;
+            }
+            if (this.panel.query.startsWith('SHOW FIELD KEYS FROM "')) {
+              return true;
+            }
+            return false;
+          }
+        }, {
+          key: 'onClickedResult',
+          value: function onClickedResult(res) {
+            if ("SHOW MEASUREMENTS" == this.panel.query) {
+              this.panel.query = 'SHOW FIELD KEYS FROM "' + res[0] + '"';
+              this.onSubmit();
+            } else if (this.panel.query.startsWith('SHOW FIELD KEYS FROM "')) {
+              var str = this.panel.query.split(/"/)[1];
+              this.panel.query = 'SELECT "' + res[0] + '" FROM "' + str + '" ORDER BY time desc LIMIT 10';
+              this.onSubmit();
+            }
+            return;
           }
         }, {
           key: 'onSubmit',
@@ -270,7 +294,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
               //console.log( 'ds', ds, this.query);
               _this5.db = ds;
-              ds._seriesQuery(_this5.query).then(function (data) {
+              ds._seriesQuery(_this5.panel.query).then(function (data) {
                 // console.log("RSP", this.query, data);
                 _this5.rsp = data;
                 _this5.runningQuery = false;
@@ -287,6 +311,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           key: 'onPanelInitalized',
           value: function onPanelInitalized() {
             //console.log("onPanelInitalized()")
+            this.onSubmit();
           }
         }, {
           key: 'onRender',

@@ -13,7 +13,6 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.datasourceSrv = $injector.get('datasourceSrv');
     this.injector = $injector;
     this.q = $q;
-    this.query = "SHOW DIAGNOSTICS";
     this.$timeout = $timeout;
     this.$http = $http;
 
@@ -27,9 +26,11 @@ class InfluxAdminCtrl extends PanelCtrl {
     // defaults configs
     var defaults = {
       mode: 'current', // 'write', 'query'
+      query: 'SHOW DIAGNOSTICS',
       updateEvery: 1200
     };
-    this.panel = $.extend(true, defaults, this.panel );
+    $.extend(true, defaults, this.panel );
+
 
     // All influxdb datasources
     this.dbs = [];
@@ -180,32 +181,55 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   getQueryTemplates() {
     return [
-      { text: 'Show Databases',  click: "ctrl.query = 'SHOW DATABASES'" },
-      { text: 'Create Database', click: "ctrl.query = 'CREATE DATABASE &quot;db_name&quot;'" },
-      { text: 'Drop Database',   click: "ctrl.query = 'DROP DATABASE &quot;db_name&quot;'" },
+      { text: 'Show Databases',  click: "ctrl.panel.query = 'SHOW DATABASES'" },
+      { text: 'Create Database', click: "ctrl.panel.query = 'CREATE DATABASE &quot;db_name&quot;'" },
+      { text: 'Drop Database',   click: "ctrl.panel.query = 'DROP DATABASE &quot;db_name&quot;'" },
       { text: '--' },
-      { text: 'Show Measurements', click: "ctrl.query = 'SHOW MEASUREMENTS'" },
-      { text: 'Show Field Keys',   click: "ctrl.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" },
-      { text: 'Show Tag Keys',     click: "ctrl.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" },
-      { text: 'Show Tag Values',   click: "ctrl.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" },
-      { text: 'Drop Measurement',  click: "ctrl.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" },
+      { text: 'Show Measurements', click: "ctrl.panel.query = 'SHOW MEASUREMENTS'" },
+      { text: 'Show Field Keys',   click: "ctrl.panel.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" },
+      { text: 'Show Tag Keys',     click: "ctrl.panel.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" },
+      { text: 'Show Tag Values',   click: "ctrl.panel.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" },
+      { text: 'Drop Measurement',  click: "ctrl.panel.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" },
       { text: '--' },
-      { text: 'Show Retention Policies', click: "ctrl.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" },
-      { text: 'Create Retention Policy', click: "ctrl.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" },
-      { text: 'Drop Retention Policy',   click: "ctrl.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" },
+      { text: 'Show Retention Policies', click: "ctrl.panel.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" },
+      { text: 'Create Retention Policy', click: "ctrl.panel.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" },
+      { text: 'Drop Retention Policy',   click: "ctrl.panel.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" },
       { text: '--' },
-      { text: 'Show Continuous Queries', click: "ctrl.query = 'SHOW CONTINUOUS QUERIES'" },
-      { text: 'Create Continuous Query', click: "ctrl.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" },
-      { text: 'Drop Continuous Query',   click: "ctrl.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" },
+      { text: 'Show Continuous Queries', click: "ctrl.panel.query = 'SHOW CONTINUOUS QUERIES'" },
+      { text: 'Create Continuous Query', click: "ctrl.panel.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" },
+      { text: 'Drop Continuous Query',   click: "ctrl.panel.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" },
       { text: '--' },
-      { text: 'Show Users',        click: "ctrl.query = 'SHOW USERS'" },
+      { text: 'Show Users',        click: "ctrl.panel.query = 'SHOW USERS'" },
   //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
   //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
-      { text: 'Drop User',         click: "ctrl.query = 'DROP USER &quot;username&quot;'" },
+      { text: 'Drop User',         click: "ctrl.panel.query = 'DROP USER &quot;username&quot;'" },
       { text: '--' },
-      { text: 'Show Stats',       click: "ctrl.query = 'SHOW STATS'" },
-      { text: 'Show Diagnostics', click: "ctrl.query = 'SHOW DIAGNOSTICS'" }
+      { text: 'Show Stats',       click: "ctrl.panel.query = 'SHOW STATS'" },
+      { text: 'Show Diagnostics', click: "ctrl.panel.query = 'SHOW DIAGNOSTICS'" }
     ];
+  }
+
+  isClickableQuery() {
+    if( "SHOW MEASUREMENTS" == this.panel.query) {
+      return true;
+    }
+    if( this.panel.query.startsWith( 'SHOW FIELD KEYS FROM "')) {
+      return true;
+    }
+    return false;
+  }
+
+  onClickedResult(res) {
+    if( "SHOW MEASUREMENTS" == this.panel.query) {
+      this.panel.query = 'SHOW FIELD KEYS FROM "' + res[0] +'"';
+      this.onSubmit();
+    }
+    else if( this.panel.query.startsWith( 'SHOW FIELD KEYS FROM "')) {
+      var str = this.panel.query.split(/"/)[1];
+      this.panel.query = 'SELECT "' + res[0] +'" FROM "' + str +'" ORDER BY time desc LIMIT 10';
+      this.onSubmit();
+    }
+    return;
   }
 
   onSubmit() {
@@ -215,7 +239,7 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       //console.log( 'ds', ds, this.query);
       this.db = ds;
-      ds._seriesQuery( this.query ).then((data) => {
+      ds._seriesQuery( this.panel.query ).then((data) => {
        // console.log("RSP", this.query, data);
         this.rsp = data;
         this.runningQuery = false;
@@ -231,6 +255,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   onPanelInitalized() {
     //console.log("onPanelInitalized()")
+    this.onSubmit();
   }
 
   onRender() {

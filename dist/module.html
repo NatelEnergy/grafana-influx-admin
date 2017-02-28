@@ -44,7 +44,7 @@
           gf-dropdown="ctrl.getQueryTemplates();" 
           data-toggle="dropdown"
           data-placement="top"><i class="fa fa-bookmark-o"></i></a>
-        <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.query" placeholder="Enter your influx Query" />
+        <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.panel.query" placeholder="Enter your influx Query" />
         <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : 'fa fa-search'"></i></a>
       </div>
     </form>
@@ -71,7 +71,12 @@
 
           <tr ng-repeat="row in series.values track by $index">
             <td ng-repeat="col in row track by $index">
-              {{ col }} &nbsp;
+              <span ng-show="!ctrl.isClickableQuery()">
+                {{ col }} &nbsp;
+              </span>
+              <a ng-show="ctrl.isClickableQuery()" ng-click="ctrl.onClickedResult(row)">
+                {{ col }} &nbsp;
+              </span>
             </td>
           </tr>
           </table>

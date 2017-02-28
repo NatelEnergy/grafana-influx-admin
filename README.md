@@ -16,11 +16,6 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 ![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png)
 
 
-#### TODO
-- Execute the query when the panel loads
-- save the query with the panel  
-- db > measurment > Fields/Tags browser
-
 
 #### Changelog
 
