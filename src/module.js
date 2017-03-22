@@ -29,7 +29,7 @@ class InfluxAdminCtrl extends PanelCtrl {
       query: 'SHOW DIAGNOSTICS',
       updateEvery: 1200
     };
-    $.extend(true, defaults, this.panel );
+    _.defaults(this.panel, defaults);
 
 
     // All influxdb datasources
@@ -172,11 +172,12 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   configChanged() {
     this.error = null;
-    this.db = ds;
     if( this.isShowCurrentQueries() ) {
       this.updateShowQueries();
     }
-    this.render();
+    else {
+      this.onSubmit();
+    }
   }
 
   getQueryTemplates() {
