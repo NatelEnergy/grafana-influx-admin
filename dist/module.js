@@ -93,7 +93,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             query: 'SHOW DIAGNOSTICS',
             updateEvery: 1200
           };
-          $.extend(true, defaults, _this.panel);
+          _.defaults(_this.panel, defaults);
 
           // All influxdb datasources
           _this.dbs = [];
@@ -245,11 +245,11 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           key: 'configChanged',
           value: function configChanged() {
             this.error = null;
-            this.db = ds;
             if (this.isShowCurrentQueries()) {
               this.updateShowQueries();
+            } else {
+              this.onSubmit();
             }
-            this.render();
           }
         }, {
           key: 'getQueryTemplates',
