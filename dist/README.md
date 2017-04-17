@@ -19,6 +19,10 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 
 #### Changelog
 
+##### v0.0.3
+
+- Select Databases
+
 
 ##### v0.0.2
 
