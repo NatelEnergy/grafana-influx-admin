@@ -1,19 +1,22 @@
 <div class="editor-row">
 
   <div class="gf-form">
-    <span class="gf-form-label width-7">InfluxDB</span>
+    <span class="gf-form-label width-7">Datasource</span>
     <div class="gf-form-select-wrapper max-width-23">
-      <select class="gf-form-input" 
-        ng-options="db for db in ctrl.dbs"
-        ng-model="ctrl.panel.datasource" 
+      <select class="gf-form-input"
+        ng-options="ds for ds in ctrl.dbs"
+        ng-model="ctrl.panel.datasource"
         ng-change="ctrl.configChanged()">
       </select>
     </div>
+
+    <metric-segment segment="ctrl.dbSeg" get-options="ctrl.getDBsegs()" on-change="ctrl.dbChanged()"></metric-segment>
+
     &nbsp;&nbsp; {{ ctrl.db.database }}
   </div>
 
   <div class="gf-form">
-    <span class="gf-form-label width-7">Display</span>
+    <span class="gf-form-label width-7">Show</span>
     <div class="gf-form-select-wrapper max-width-23">
       <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.configChanged()">
         <option value="current">Current Queries</option>
@@ -22,10 +25,19 @@
     </div>
   </div>
 
+  <div class="gf-form" ng-show="ctrl.panel.mode == 'query'">
+    <gf-form-switch class="gf-form"
+      label="Query DB"
+      label-class="gf-form-label width-7"
+      checked="ctrl.panel.queryDB"
+      on-change="ctrl.configChanged()"></gf-form-switch>
+  </div>
+
+
 <!--
   <div class="gf-form" ng-show="ctrl.panel.mode == 'current'">
     <span class="gf-form-label width-7">Refresh</span>
-    input.... 
+    input....
   </div>
 
   <pre>

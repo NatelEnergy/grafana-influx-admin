@@ -69,13 +69,14 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
       _export('PanelCtrl', InfluxAdminCtrl = function (_PanelCtrl) {
         _inherits(InfluxAdminCtrl, _PanelCtrl);
 
-        function InfluxAdminCtrl($scope, $injector, $q, $rootScope, $timeout, $http) {
+        function InfluxAdminCtrl($scope, $injector, $q, $rootScope, $timeout, $http, uiSegmentSrv) {
           _classCallCheck(this, InfluxAdminCtrl);
 
           var _this = _possibleConstructorReturn(this, (InfluxAdminCtrl.__proto__ || Object.getPrototypeOf(InfluxAdminCtrl)).call(this, $scope, $injector));
 
           _this.datasourceSrv = $injector.get('datasourceSrv');
           _this.injector = $injector;
+          _this.uiSegmentSrv = uiSegmentSrv;
           _this.q = $q;
           _this.$timeout = $timeout;
           _this.$http = $http;
@@ -91,6 +92,9 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           var defaults = {
             mode: 'current', // 'write', 'query'
             query: 'SHOW DIAGNOSTICS',
+            options: {
+              database: null
+            },
             updateEvery: 1200
           };
           _.defaults(_this.panel, defaults);
@@ -113,6 +117,11 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
               _this.panel.datasource = _this.dbs[0];
             }
           }
+          var txt = "default";
+          if (_this.panel.options.database) {
+            txt = _this.panel.options.database;
+          }
+          _this.dbSeg = _this.uiSegmentSrv.newSegment({ value: txt });
 
           _this.queryInfo = {
             last: 0,
@@ -152,8 +161,12 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             this.writing = true;
             this.error = null;
             return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+              var db = _this2.panel.options.database;
+              if (!db) {
+                db = ds.database;
+              }
               _this2.$http({
-                url: ds.urls[0] + '/write?db=' + ds.database,
+                url: ds.urls[0] + '/write?db=' + db,
                 method: 'POST',
                 data: _this2.writeDataText,
                 headers: {
@@ -183,7 +196,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
               yesText: 'Kill Query',
               onConfirm: function onConfirm() {
                 _this3.datasourceSrv.get(_this3.panel.datasource).then(function (ds) {
-                  ds._seriesQuery('kill query ' + qinfo.id).then(function (res) {
+                  ds._seriesQuery('kill query ' + qinfo.id, _this3.panel.options).then(function (res) {
                     console.log('killed', qinfo, res);
                   });
                 });
@@ -198,7 +211,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
 
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
               _this4.db = ds;
-              ds._seriesQuery('SHOW QUERIES').then(function (data) {
+              ds._seriesQuery('SHOW QUERIES', _this4.panel.options).then(function (data) {
                 var temp = [];
                 _.forEach(data.results[0].series[0].values, function (res) {
 
@@ -242,6 +255,21 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             });
           }
         }, {
+          key: 'dbChanged',
+          value: function dbChanged() {
+            var _this5 = this;
+
+            this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+              console.log("DB Changed", _this5.dbSeg);
+              if (_this5.dbSeg.value === ds.database || _this5.dbSeg.value === "default") {
+                _this5.panel.options.database = null;
+              } else {
+                _this5.panel.options.database = _this5.dbSeg.value;
+              }
+              _this5.configChanged();
+            });
+          }
+        }, {
           key: 'configChanged',
           value: function configChanged() {
             this.error = null;
@@ -250,6 +278,23 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             } else {
               this.onSubmit();
             }
+          }
+        }, {
+          key: 'getDBsegs',
+          value: function getDBsegs() {
+            var _this6 = this;
+
+            return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+              return ds.metricFindQuery("SHOW DATABASES", _this6.panel.options).then(function (data) {
+                var segs = [];
+                _.forEach(data, function (val) {
+                  segs.push(_this6.uiSegmentSrv.newSegment(val.text));
+                });
+                return segs;
+              }, function (err) {
+                console.log("TODO... error???", err);
+              });
+            });
           }
         }, {
           key: 'getQueryTemplates',
@@ -262,6 +307,9 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
         }, {
           key: 'isClickableQuery',
           value: function isClickableQuery() {
+            if ("SHOW DATABASES" == this.panel.query) {
+              return true;
+            }
             if ("SHOW MEASUREMENTS" == this.panel.query) {
               return true;
             }
@@ -273,7 +321,13 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
         }, {
           key: 'onClickedResult',
           value: function onClickedResult(res) {
-            if ("SHOW MEASUREMENTS" == this.panel.query) {
+            console.log("CLICKED", this.panel.query, res);
+
+            if ("SHOW DATABASES" == this.panel.query) {
+              this.panel.query = 'SHOW MEASUREMENTS';
+              this.dbSeg = this.uiSegmentSrv.newSegment({ value: res[0] });
+              this.dbChanged();
+            } else if ("SHOW MEASUREMENTS" == this.panel.query) {
               this.panel.query = 'SHOW FIELD KEYS FROM "' + res[0] + '"';
               this.onSubmit();
             } else if (this.panel.query.startsWith('SHOW FIELD KEYS FROM "')) {
@@ -284,26 +338,34 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             return;
           }
         }, {
+          key: 'checkIfEnterKeyWasPressed',
+          value: function checkIfEnterKeyWasPressed($event) {
+            var keyCode = $event.which || $event.keyCode;
+            if (keyCode === 13) {
+              this.onSubmit();
+            }
+          }
+        }, {
           key: 'onSubmit',
           value: function onSubmit() {
-            var _this5 = this;
+            var _this7 = this;
 
             var startTime = Date.now();
             this.error = null;
             this.runningQuery = true;
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
-              //console.log( 'ds', ds, this.query);
-              _this5.db = ds;
-              ds._seriesQuery(_this5.panel.query).then(function (data) {
+              console.log('OnSubmit', ds, _this7.query, _this7.panel.options);
+              _this7.db = ds;
+              ds._seriesQuery(_this7.panel.query, _this7.panel.options).then(function (data) {
                 // console.log("RSP", this.query, data);
-                _this5.rsp = data;
-                _this5.runningQuery = false;
-                _this5.queryTime = (Date.now() - startTime) / 1000.0;
+                _this7.rsp = data;
+                _this7.runningQuery = false;
+                _this7.queryTime = (Date.now() - startTime) / 1000.0;
               }, function (err) {
                 // console.log( 'ERROR with series query', err );
-                _this5.runningQuery = false;
-                _this5.error = err.message;
-                _this5.queryTime = (Date.now() - startTime) / 1000.0;
+                _this7.runningQuery = false;
+                _this7.error = err.message;
+                _this7.queryTime = (Date.now() - startTime) / 1000.0;
               });
             });
           }

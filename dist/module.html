@@ -4,8 +4,8 @@
       <div class="search-results-container" ng-style="{height: ctrl.height, border: '0px solid red'}">
         <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
           ng-click="ctrl.askToKillQuery( qinfo )"
-          class="search-item pointer" 
-          title="Kill Query" 
+          class="search-item pointer"
+          title="Kill Query"
           href="#">
           <span class="search-result-tags">
             &nbsp;&nbsp;<i class="fa fa-ban"></i>
@@ -35,16 +35,24 @@
 
       </div>
 
-  </div>  
+  </div>
   <div ng-show="ctrl.isShowQueryWindow()">
 
 
     <form class="gf-form" ng-submit="ctrl.onSubmit()">
-        <a class="gf-form-label tight-form-func dropdown-toggle" 
-          gf-dropdown="ctrl.getQueryTemplates();" 
+        <a class="gf-form-label tight-form-func dropdown-toggle"
+          gf-dropdown="ctrl.getQueryTemplates();"
           data-toggle="dropdown"
           data-placement="top"><i class="fa fa-bookmark-o"></i></a>
-        <input class="gf-form-input gf-form-grow" type="text" ng-model="ctrl.panel.query" placeholder="Enter your influx Query" />
+
+        <input
+          class="gf-form-input gf-form-grow" type="text"
+          ng-model="ctrl.panel.query"
+          placeholder="Enter your influx Query"
+          ng-keypress="ctrl.checkIfEnterKeyWasPressed($event)" />
+
+        <metric-segment ng-show="ctrl.panel.queryDB" segment="ctrl.dbSeg" get-options="ctrl.getDBsegs()" on-change="ctrl.dbChanged()"></metric-segment>
+
         <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : 'fa fa-search'"></i></a>
       </div>
     </form>
@@ -65,7 +73,7 @@
           <table class="grafana-options-table">
           <tr class="admin-settings-section">
             <td ng-repeat="col in series.columns track by $index">
-            {{ col }} &nbsp; 
+            {{ col }} &nbsp;
             </td>
           </tr>
 
