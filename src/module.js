@@ -23,6 +23,7 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.events.on('refresh', this.onRefresh.bind(this));
 
     this.writing = false;
+    this.history = [  ];
 
     // defaults configs
     var defaults = {
@@ -59,7 +60,8 @@ class InfluxAdminCtrl extends PanelCtrl {
     if(this.panel.options.database) {
       txt = this.panel.options.database;
     }
-    this.dbSeg = this.uiSegmentSrv.newSegment({value: txt})
+    this.dbSeg = this.uiSegmentSrv.newSegment(txt);
+    this.querySeg = this.uiSegmentSrv.newSegment(this.panel.query);
 
     this.queryInfo = {
       last: 0,
@@ -67,7 +69,7 @@ class InfluxAdminCtrl extends PanelCtrl {
       queries: []
     };
 
-    if(this.panel.updateEvery > 0) {
+    if(this.isShowCurrentQueries() && this.panel.updateEvery > 0) {
       this.updateShowQueries();
     }
   }
@@ -135,7 +137,6 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   updateShowQueries() {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
-      this.db = ds;
       ds._seriesQuery( 'SHOW QUERIES', this.panel.options ).then( (data) => {
         var temp = [];
         _.forEach(data.results[0].series[0].values, (res) => {
@@ -186,11 +187,12 @@ class InfluxAdminCtrl extends PanelCtrl {
   dbChanged() {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       console.log( "DB Changed", this.dbSeg );
-      if(this.dbSeg.value === ds.database || this.dbSeg.value === "default") {
+      let db = this.dbSeg.value;
+      if(db === ds.database || db === "default") {
         this.panel.options.database = null;
       }
       else {
-        this.panel.options.database = this.dbSeg.value;
+        this.panel.options.database = db;
       }
       this.configChanged();
     });
@@ -202,7 +204,7 @@ class InfluxAdminCtrl extends PanelCtrl {
       this.updateShowQueries();
     }
     else {
-      this.onSubmit();
+      this.onQueryChanged();
     }
   }
 
@@ -222,32 +224,37 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   getQueryTemplates() {
     return [
-      { text: 'Show Databases',  click: "ctrl.panel.query = 'SHOW DATABASES'" },
-      { text: 'Create Database', click: "ctrl.panel.query = 'CREATE DATABASE &quot;db_name&quot;'" },
-      { text: 'Drop Database',   click: "ctrl.panel.query = 'DROP DATABASE &quot;db_name&quot;'" },
+      { text: 'Show Databases',  click: "ctrl.setQueryTemplate( 'SHOW DATABASES' );" },
+      { text: 'Create Database', click: "ctrl.setQueryTemplate( 'CREATE DATABASE &quot;db_name&quot;' );" },
+      { text: 'Drop Database',   click: "ctrl.setQueryTemplate( 'DROP DATABASE &quot;db_name&quot;' );" },
       { text: '--' },
-      { text: 'Show Measurements', click: "ctrl.panel.query = 'SHOW MEASUREMENTS'" },
-      { text: 'Show Field Keys',   click: "ctrl.panel.query = 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;'" },
-      { text: 'Show Tag Keys',     click: "ctrl.panel.query = 'SHOW TAG KEYS FROM &quot;measurement_name&quot;'" },
-      { text: 'Show Tag Values',   click: "ctrl.panel.query = 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;'" },
-      { text: 'Drop Measurement',  click: "ctrl.panel.query = 'DROP MEASUREMENT &quot;measurement_name&quot;'" },
+      { text: 'Show Measurements', click: "ctrl.setQueryTemplate( 'SHOW MEASUREMENTS' );" },
+      { text: 'Show Field Keys',   click: "ctrl.setQueryTemplate( 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;' );" },
+      { text: 'Show Tag Keys',     click: "ctrl.setQueryTemplate( 'SHOW TAG KEYS FROM &quot;measurement_name&quot;' );" },
+      { text: 'Show Tag Values',   click: "ctrl.setQueryTemplate( 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;' );" },
+      { text: 'Drop Measurement',  click: "ctrl.setQueryTemplate( 'DROP MEASUREMENT &quot;measurement_name&quot;' );" },
       { text: '--' },
-      { text: 'Show Retention Policies', click: "ctrl.panel.query = 'SHOW RETENTION POLICIES ON &quot;db_name&quot;'" },
-      { text: 'Create Retention Policy', click: "ctrl.panel.query = 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT'" },
-      { text: 'Drop Retention Policy',   click: "ctrl.panel.query = 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;'" },
+      { text: 'Show Retention Policies', click: "ctrl.setQueryTemplate( 'SHOW RETENTION POLICIES ON &quot;db_name&quot;' );" },
+      { text: 'Create Retention Policy', click: "ctrl.setQueryTemplate( 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT' );" },
+      { text: 'Drop Retention Policy',   click: "ctrl.setQueryTemplate( 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;' );" },
       { text: '--' },
-      { text: 'Show Continuous Queries', click: "ctrl.panel.query = 'SHOW CONTINUOUS QUERIES'" },
-      { text: 'Create Continuous Query', click: "ctrl.panel.query = 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END'" },
-      { text: 'Drop Continuous Query',   click: "ctrl.panel.query = 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;'" },
+      { text: 'Show Continuous Queries', click: "ctrl.setQueryTemplate( 'SHOW CONTINUOUS QUERIES' );" },
+      { text: 'Create Continuous Query', click: "ctrl.setQueryTemplate( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );" },
+      { text: 'Drop Continuous Query',   click: "ctrl.setQueryTemplate( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );" },
       { text: '--' },
-      { text: 'Show Users',        click: "ctrl.panel.query = 'SHOW USERS'" },
+      { text: 'Show Users',        click: "ctrl.setQueryTemplate( 'SHOW USERS' );" },
   //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
   //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
-      { text: 'Drop User',         click: "ctrl.panel.query = 'DROP USER &quot;username&quot;'" },
+      { text: 'Drop User',         click: "ctrl.setQueryTemplate( 'DROP USER &quot;username&quot;' );" },
       { text: '--' },
-      { text: 'Show Stats',       click: "ctrl.panel.query = 'SHOW STATS'" },
-      { text: 'Show Diagnostics', click: "ctrl.panel.query = 'SHOW DIAGNOSTICS'" }
+      { text: 'Show Stats',       click: "ctrl.setQueryTemplate( 'SHOW STATS' );" },
+      { text: 'Show Diagnostics', click: "ctrl.setQueryTemplate( 'SHOW DIAGNOSTICS' );" }
     ];
+  }
+
+  setQueryTemplate(txt) {
+    this.querySeg = this.uiSegmentSrv.newSegment( txt );
+    this.onQueryChanged();
   }
 
   isClickableQuery() {
@@ -267,38 +274,68 @@ class InfluxAdminCtrl extends PanelCtrl {
     console.log( "CLICKED", this.panel.query, res );
 
     if( "SHOW DATABASES" == this.panel.query) {
-      this.panel.query = 'SHOW MEASUREMENTS';
-      this.dbSeg = this.uiSegmentSrv.newSegment({value: res[0]});
+      this.querySeg = this.uiSegmentSrv.newSegment( 'SHOW MEASUREMENTS' );
+      this.dbSeg = this.uiSegmentSrv.newSegment( res[0] );
       this.dbChanged();
     }
     else if( "SHOW MEASUREMENTS" == this.panel.query) {
-      this.panel.query = 'SHOW FIELD KEYS FROM "' + res[0] +'"';
-      this.onSubmit();
+      this.setQueryTemplate( 'SHOW FIELD KEYS FROM "' + res[0] +'"' );
     }
     else if( this.panel.query.startsWith( 'SHOW FIELD KEYS FROM "')) {
       var str = this.panel.query.split(/"/)[1];
-      this.panel.query = 'SELECT "' + res[0] +'" FROM "' + str +'" ORDER BY time desc LIMIT 10';
-      this.onSubmit();
+      this.setQueryTemplate( 'SELECT "' + res[0] +'" FROM "' + str +'" ORDER BY time desc LIMIT 10' );
     }
     return;
   }
 
-  checkIfEnterKeyWasPressed($event) {
-    var keyCode = $event.which || $event.keyCode;
-    if (keyCode === 13) {
-      this.onSubmit();
+  isPostQuery() {
+    var q = this.querySeg.value;
+    return !(
+      q.startsWith( "SELECT " ) ||
+      q.startsWith( "SHOW " ));
+  }
+
+  getQueryHistory() {
+    var segs = [];
+    for(let i=0; i<this.history.length; i++) {
+      segs.push( this.uiSegmentSrv.newSegment( this.history[i] ) );
+    }
+    return this.q.when( segs );
+  }
+
+  onQueryChanged() {
+    this.querySeg = this.uiSegmentSrv.newSegment( this.querySeg.value );
+    console.log("onQueryChanged()", this.querySeg );
+    this.rsp = null;
+    if(!this.isPostQuery()) {
+      this.doSubmit();
     }
   }
 
-  onSubmit() {
+  doSubmit() {
+
+    let q = this.querySeg.value;
+    this.panel.query = q;
+    console.log("doSubmit()", this );
+
+    this.history.unshift( q );
+    for(let i=1; i<this.history.length; i++) {
+      if(this.history[i] === q) {
+        this.history.splice(i,1);
+        break;
+      }
+    }
+    if(this.history.length > 15) {
+      this.history.pop();
+    }
+
     var startTime = Date.now();
     this.error = null;
     this.runningQuery = true;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
-      console.log( 'OnSubmit', ds, this.query, this.panel.options);
-      this.db = ds;
+      console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
       ds._seriesQuery( this.panel.query, this.panel.options ).then((data) => {
-       // console.log("RSP", this.query, data);
+        console.log("RSP", this.panel.query, data);
         this.rsp = data;
         this.runningQuery = false;
         this.queryTime = (Date.now() - startTime) / 1000.0;
@@ -313,7 +350,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   onPanelInitalized() {
     //console.log("onPanelInitalized()")
-    this.onSubmit();
+    this.onQueryChanged();
   }
 
   onRender() {

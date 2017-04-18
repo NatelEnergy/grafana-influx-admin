@@ -45,15 +45,21 @@
           data-toggle="dropdown"
           data-placement="top"><i class="fa fa-bookmark-o"></i></a>
 
-        <input
-          class="gf-form-input gf-form-grow" type="text"
-          ng-model="ctrl.panel.query"
-          placeholder="Enter your influx Query"
-          ng-keypress="ctrl.checkIfEnterKeyWasPressed($event)" />
+        <metric-segment
+          segment="ctrl.querySeg"
+          get-options="ctrl.getQueryHistory()"
+          on-change="ctrl.onQueryChanged()"></metric-segment>
 
-        <metric-segment ng-show="ctrl.panel.queryDB" segment="ctrl.dbSeg" get-options="ctrl.getDBsegs()" on-change="ctrl.dbChanged()"></metric-segment>
+        <div class="gf-form-label gf-form-label--grow"></div>
 
-        <a ng-click="ctrl.onSubmit()" class="btn btn-inverse"><i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : 'fa fa-search'"></i></a>
+        <metric-segment ng-show="ctrl.panel.queryDB"
+          segment="ctrl.dbSeg"
+          get-options="ctrl.getDBsegs()"
+          on-change="ctrl.dbChanged()"></metric-segment>
+
+        <a ng-click="ctrl.doSubmit()"
+          ng-class="ctrl.isPostQuery() ? 'btn btn-primary' : 'btn btn-inverse'">
+          <i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : (ctrl.isPostQuery() ? 'fa fa-sign-in' : 'fa fa-search')"></i> {{ ctrl.isPostQuery() ? 'POST' : '' }}</a>
       </div>
     </form>
     <div ng-show="ctrl.queryTime > 0">
