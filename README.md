@@ -22,6 +22,7 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 ##### v0.0.3
 
 - Select Databases
+- TODO... using <metric-segment for the query window is not really working :(
 
 
 ##### v0.0.2
