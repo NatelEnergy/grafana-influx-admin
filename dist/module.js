@@ -96,6 +96,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             options: {
               database: null
             },
+            time: 'YYYY-MM-DDTHH:mm:ssZ',
             updateEvery: 1200
           };
           _.defaults(_this.panel, defaults);
@@ -385,17 +386,33 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
 
             var startTime = Date.now();
             this.error = null;
+            this.clickableQuery = false;
             this.runningQuery = true;
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
               //console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
               ds._seriesQuery(_this7.panel.query, _this7.panel.options).then(function (data) {
-                //console.log("RSP", this.panel.query, data);
-                _this7.rsp = data;
                 _this7.runningQuery = false;
                 _this7.queryTime = (Date.now() - startTime) / 1000.0;
+                _this7.clickableQuery = _this7.isClickableQuery();
+
+                // Process the timestamps
+                _.forEach(data.results, function (query) {
+                  _.forEach(query, function (res) {
+                    _.forEach(res, function (series) {
+                      if (series.columns && series.columns[0] == 'time') {
+                        _.forEach(series.values, function (row) {
+                          row[0] = moment(row[0]).format(_this7.panel.time);
+                        });
+                      }
+                    });
+                  });
+                });
+                // Set this after procesing the timestamps
+                _this7.rsp = data;
               }, function (err) {
                 // console.log( 'ERROR with series query', err );
                 _this7.runningQuery = false;
+                _this7.clickableQuery = false;
                 _this7.error = err.message;
                 _this7.queryTime = (Date.now() - startTime) / 1000.0;
               });

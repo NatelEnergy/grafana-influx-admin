@@ -1,7 +1,7 @@
 <div class="editor-row">
 
   <div class="gf-form">
-    <span class="gf-form-label width-7">Datasource</span>
+    <span class="gf-form-label width-8">InfluxDB</span>
     <div class="gf-form-select-wrapper max-width-23">
       <select class="gf-form-input"
         ng-options="ds for ds in ctrl.dbs"
@@ -16,9 +16,9 @@
   </div>
 
   <div class="gf-form">
-    <span class="gf-form-label width-7">Show</span>
+    <span class="gf-form-label width-8">Show</span>
     <div class="gf-form-select-wrapper max-width-23">
-      <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.configChanged()">
+      <select class="gf-form-input" ng-model="ctrl.panel.mode">
         <option value="current">Current Queries</option>
         <option value="query">Query Window</option>
       </select>
@@ -27,12 +27,19 @@
 
   <div class="gf-form" ng-show="ctrl.panel.mode == 'query'">
     <gf-form-switch class="gf-form"
-      label="Query DB"
-      label-class="gf-form-label width-7"
-      checked="ctrl.panel.queryDB"
-      on-change="ctrl.configChanged()"></gf-form-switch>
+      label="Show DB"
+      label-class="gf-form-label width-8"
+      checked="ctrl.panel.queryDB"></gf-form-switch>
   </div>
 
+  <div class="gf-form">
+    <span class="gf-form-label width-8">Time Format</span>
+    <input type="text" 
+      class="gf-form-input max-width-16" 
+      ng-model="ctrl.panel.time"
+      ng-change="ctrl.onQueryChanged()">
+    &nbsp; <a href="https://momentjs.com/docs/#/displaying/format/"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+  </div>
 
 <!--
   <div class="gf-form" ng-show="ctrl.panel.mode == 'current'">

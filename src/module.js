@@ -32,6 +32,7 @@ class InfluxAdminCtrl extends PanelCtrl {
       options: {
         database: null
       },
+      time: 'YYYY-MM-DDTHH:mm:ssZ',
       updateEvery: 1200
     };
     _.defaults(this.panel, defaults);
@@ -326,17 +327,34 @@ class InfluxAdminCtrl extends PanelCtrl {
 
     var startTime = Date.now();
     this.error = null;
+    this.clickableQuery = false;
     this.runningQuery = true;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       //console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
       ds._seriesQuery( this.panel.query, this.panel.options ).then((data) => {
-        //console.log("RSP", this.panel.query, data);
-        this.rsp = data;
         this.runningQuery = false;
         this.queryTime = (Date.now() - startTime) / 1000.0;
+        this.clickableQuery = this.isClickableQuery();
+
+        // Process the timestamps
+        _.forEach(data.results, (query) => {
+          _.forEach(query, (res) => {
+            _.forEach(res, (series) => {
+              if( series.columns && series.columns[0] == 'time') {
+                _.forEach(series.values, (row) => {
+                  row[0] = moment(row[0]).format( this.panel.time );
+                });
+              }
+            });
+          });
+        });
+        // Set this after procesing the timestamps
+        this.rsp = data;
+
       }, (err) => {
        // console.log( 'ERROR with series query', err );
         this.runningQuery = false;
+        this.clickableQuery = false;
         this.error = err.message;
         this.queryTime = (Date.now() - startTime) / 1000.0;
       });
