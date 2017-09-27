@@ -45,19 +45,26 @@
           data-toggle="dropdown"
           data-placement="top"><i class="fa fa-bookmark-o"></i></a>
 
-        <metric-segment
-          segment="ctrl.querySeg"
-          get-options="ctrl.getQueryHistory()"
-          on-change="ctrl.onQueryChanged()"></metric-segment>
+<!--
+        <a class="gf-form-label tight-form-func dropdown-toggle"
+          gf-dropdown="ctrl.getQueryHistory();"
+          data-toggle="dropdown"
+          data-placement="top"><i class="fa fa-clock-o"></i></a>
+-->
 
-        <div class="gf-form-label gf-form-label--grow"></div>
+        <input type="text"
+          ng-model="ctrl.panel.query"
+          class="gf-form-input"
+          spellcheck="false">
+        </input>
 
-        <metric-segment ng-show="ctrl.panel.queryDB"
+        <metric-segment 
+          ng-show="ctrl.panel.queryDB"
           segment="ctrl.dbSeg"
           get-options="ctrl.getDBsegs()"
           on-change="ctrl.dbChanged()"></metric-segment>
 
-        <a ng-click="ctrl.doSubmit()"
+        <a ng-click="ctrl.doSubmit()" style="white-space: nowrap;"
           ng-class="ctrl.isPostQuery() ? 'btn btn-primary' : 'btn btn-inverse'">
           <i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : (ctrl.isPostQuery() ? 'fa fa-sign-in' : 'fa fa-search')"></i> {{ ctrl.isPostQuery() ? 'POST' : '' }}</a>
       </div>

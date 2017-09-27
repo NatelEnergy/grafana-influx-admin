@@ -19,10 +19,10 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 
 #### Changelog
 
-##### v0.0.3
+##### v0.0.3 (not released yet)
 
-- Select Databases
-- TODO... using <metric-segment for the query window is not really working :(
+- Select Databases.  Note this requires Grafana 4.6+ to work
+- (WIP) Keep query history
 
 
 ##### v0.0.2

@@ -123,7 +123,6 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             txt = _this.panel.options.database;
           }
           _this.dbSeg = _this.uiSegmentSrv.newSegment(txt);
-          _this.querySeg = _this.uiSegmentSrv.newSegment(_this.panel.query);
 
           _this.queryInfo = {
             last: 0,
@@ -164,7 +163,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             this.error = null;
             return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
               var db = _this2.panel.options.database;
-              if (!db) {
+              if (_.isNil(db)) {
                 db = ds.database;
               }
               _this2.$http({
@@ -176,10 +175,10 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 }
               }).then(function (rsp) {
                 _this2.writing = false;
-                console.log("OK", rsp);
+                console.log("Wrote OK", rsp);
               }, function (err) {
                 _this2.writing = false;
-                console.log("ERROR", err);
+                console.log("Wite ERROR", err);
                 _this2.error = err.data.error + " [" + err.status + "]";
               });
             });
@@ -299,17 +298,22 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             });
           }
         }, {
-          key: 'getQueryTemplates',
-          value: function getQueryTemplates() {
-            return [{ text: 'Show Databases', click: "ctrl.setQueryTemplate( 'SHOW DATABASES' );" }, { text: 'Create Database', click: "ctrl.setQueryTemplate( 'CREATE DATABASE &quot;db_name&quot;' );" }, { text: 'Drop Database', click: "ctrl.setQueryTemplate( 'DROP DATABASE &quot;db_name&quot;' );" }, { text: '--' }, { text: 'Show Measurements', click: "ctrl.setQueryTemplate( 'SHOW MEASUREMENTS' );" }, { text: 'Show Field Keys', click: "ctrl.setQueryTemplate( 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;' );" }, { text: 'Show Tag Keys', click: "ctrl.setQueryTemplate( 'SHOW TAG KEYS FROM &quot;measurement_name&quot;' );" }, { text: 'Show Tag Values', click: "ctrl.setQueryTemplate( 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;' );" }, { text: 'Drop Measurement', click: "ctrl.setQueryTemplate( 'DROP MEASUREMENT &quot;measurement_name&quot;' );" }, { text: '--' }, { text: 'Show Retention Policies', click: "ctrl.setQueryTemplate( 'SHOW RETENTION POLICIES ON &quot;db_name&quot;' );" }, { text: 'Create Retention Policy', click: "ctrl.setQueryTemplate( 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT' );" }, { text: 'Drop Retention Policy', click: "ctrl.setQueryTemplate( 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;' );" }, { text: '--' }, { text: 'Show Continuous Queries', click: "ctrl.setQueryTemplate( 'SHOW CONTINUOUS QUERIES' );" }, { text: 'Create Continuous Query', click: "ctrl.setQueryTemplate( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );" }, { text: 'Drop Continuous Query', click: "ctrl.setQueryTemplate( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );" }, { text: '--' }, { text: 'Show Users', click: "ctrl.setQueryTemplate( 'SHOW USERS' );" },
-            //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
-            //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
-            { text: 'Drop User', click: "ctrl.setQueryTemplate( 'DROP USER &quot;username&quot;' );" }, { text: '--' }, { text: 'Show Stats', click: "ctrl.setQueryTemplate( 'SHOW STATS' );" }, { text: 'Show Diagnostics', click: "ctrl.setQueryTemplate( 'SHOW DIAGNOSTICS' );" }];
+          key: 'getQueryHistory',
+          value: function getQueryHistory() {
+            return this.history;
           }
         }, {
-          key: 'setQueryTemplate',
-          value: function setQueryTemplate(txt) {
-            this.querySeg = this.uiSegmentSrv.newSegment(txt);
+          key: 'getQueryTemplates',
+          value: function getQueryTemplates() {
+            return [{ text: 'Show Databases', click: "ctrl.setQuery( 'SHOW DATABASES' );" }, { text: 'Create Database', click: "ctrl.setQuery( 'CREATE DATABASE &quot;db_name&quot;' );" }, { text: 'Drop Database', click: "ctrl.setQuery( 'DROP DATABASE &quot;db_name&quot;' );" }, { text: '--' }, { text: 'Show Measurements', click: "ctrl.setQuery( 'SHOW MEASUREMENTS' );" }, { text: 'Show Field Keys', click: "ctrl.setQuery( 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;' );" }, { text: 'Show Tag Keys', click: "ctrl.setQuery( 'SHOW TAG KEYS FROM &quot;measurement_name&quot;' );" }, { text: 'Show Tag Values', click: "ctrl.setQuery( 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;' );" }, { text: 'Drop Measurement', click: "ctrl.setQuery( 'DROP MEASUREMENT &quot;measurement_name&quot;' );" }, { text: '--' }, { text: 'Show Retention Policies', click: "ctrl.setQuery( 'SHOW RETENTION POLICIES ON &quot;db_name&quot;' );" }, { text: 'Create Retention Policy', click: "ctrl.setQuery( 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT' );" }, { text: 'Drop Retention Policy', click: "ctrl.setQuery( 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;' );" }, { text: '--' }, { text: 'Show Continuous Queries', click: "ctrl.setQuery( 'SHOW CONTINUOUS QUERIES' );" }, { text: 'Create Continuous Query', click: "ctrl.setQuery( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );" }, { text: 'Drop Continuous Query', click: "ctrl.setQuery( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );" }, { text: '--' }, { text: 'Show Users', click: "ctrl.setQuery( 'SHOW USERS' );" },
+            //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
+            //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
+            { text: 'Drop User', click: "ctrl.setQuery( 'DROP USER &quot;username&quot;' );" }, { text: '--' }, { text: 'Show Stats', click: "ctrl.setQuery( 'SHOW STATS' );" }, { text: 'Show Diagnostics', click: "ctrl.setQuery( 'SHOW DIAGNOSTICS' );" }];
+          }
+        }, {
+          key: 'setQuery',
+          value: function setQuery(txt) {
+            this.panel.query = txt;
             this.onQueryChanged();
           }
         }, {
@@ -332,40 +336,32 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             console.log("CLICKED", this.panel.query, res);
 
             if ("SHOW DATABASES" == this.panel.query) {
-              this.querySeg = this.uiSegmentSrv.newSegment('SHOW MEASUREMENTS');
+              this.panel.query = 'SHOW MEASUREMENTS';
               this.dbSeg = this.uiSegmentSrv.newSegment(res[0]);
               this.dbChanged();
             } else if ("SHOW MEASUREMENTS" == this.panel.query) {
-              this.setQueryTemplate('SHOW FIELD KEYS FROM "' + res[0] + '"');
+              this.setQuery('SHOW FIELD KEYS FROM "' + res[0] + '"');
             } else if (this.panel.query.startsWith('SHOW FIELD KEYS FROM "')) {
               var str = this.panel.query.split(/"/)[1];
-              this.setQueryTemplate('SELECT "' + res[0] + '" FROM "' + str + '" ORDER BY time desc LIMIT 10');
+              this.setQuery('SELECT "' + res[0] + '" FROM "' + str + '" ORDER BY time desc LIMIT 10');
             }
             return;
           }
         }, {
           key: 'isPostQuery',
           value: function isPostQuery() {
-            var q = this.querySeg.value;
+            var q = this.panel.query;
             return !(q.startsWith("SELECT ") || q.startsWith("SHOW "));
-          }
-        }, {
-          key: 'getQueryHistory',
-          value: function getQueryHistory() {
-            var segs = [];
-            for (var i = 0; i < this.history.length; i++) {
-              segs.push(this.uiSegmentSrv.newSegment(this.history[i]));
-            }
-            return this.q.when(segs);
           }
         }, {
           key: 'onQueryChanged',
           value: function onQueryChanged() {
-            this.querySeg = this.uiSegmentSrv.newSegment(this.querySeg.value);
-            console.log("onQueryChanged()", this.querySeg);
+            console.log("onQueryChanged()", this.panel.query);
             this.rsp = null;
             if (!this.isPostQuery()) {
               this.doSubmit();
+            } else {
+              console.log("POST query won't submit automatically");
             }
           }
         }, {
@@ -373,13 +369,12 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
           value: function doSubmit() {
             var _this7 = this;
 
-            var q = this.querySeg.value;
-            this.panel.query = q;
+            var q = this.panel.query;
             console.log("doSubmit()", this);
 
-            this.history.unshift(q);
+            this.history.unshift({ text: q, value: q });
             for (var i = 1; i < this.history.length; i++) {
-              if (this.history[i] === q) {
+              if (this.history[i].value === q) {
                 this.history.splice(i, 1);
                 break;
               }
@@ -392,9 +387,9 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             this.error = null;
             this.runningQuery = true;
             this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
-              console.log('doSubmit >>>', ds, _this7.panel.query, _this7.panel.options);
+              //console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
               ds._seriesQuery(_this7.panel.query, _this7.panel.options).then(function (data) {
-                console.log("RSP", _this7.panel.query, data);
+                //console.log("RSP", this.panel.query, data);
                 _this7.rsp = data;
                 _this7.runningQuery = false;
                 _this7.queryTime = (Date.now() - startTime) / 1000.0;
