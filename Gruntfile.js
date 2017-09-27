@@ -1,6 +1,8 @@
 module.exports = (grunt) => {
   require('load-grunt-tasks')(grunt);
 
+  var pkgJson = require('./package.json');
+
   grunt.loadNpmTasks('grunt-execute');
   grunt.loadNpmTasks('grunt-contrib-clean');
 
@@ -30,6 +32,26 @@ module.exports = (grunt) => {
       },
     },
 
+    'string-replace': {
+      dist: {
+        files: [{
+          cwd: 'src',
+          expand: true,
+          src: ["**/plugin.json"],
+          dest: 'dist'
+        }],
+        options: {
+          replacements: [{
+            pattern: '%VERSION%',
+            replacement: pkgJson.version
+          },{
+            pattern: '%TODAY%',
+            replacement: '<%= grunt.template.today("yyyy-mm-dd") %>'
+          }]
+        }
+      }
+    },
+
     babel: {
       options: {
         sourceMap: true,
@@ -49,5 +71,5 @@ module.exports = (grunt) => {
 
   });
 
-  grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'babel']);
+  grunt.registerTask('default', ['clean', 'copy:src_to_dist', 'copy:pluginDef', 'string-replace', 'babel']);
 };
