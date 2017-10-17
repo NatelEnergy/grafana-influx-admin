@@ -25,6 +25,7 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 - Select Databases.  Note this requires Grafana 4.6+ to work
 - Added time format options
 - [WIP] Keep query history
+- Show tags from response
 
 
 ##### v0.0.2
