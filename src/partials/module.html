@@ -58,7 +58,7 @@
           spellcheck="false">
         </input>
 
-        <metric-segment 
+        <metric-segment
           ng-show="ctrl.panel.queryDB"
           segment="ctrl.dbSeg"
           get-options="ctrl.getDBsegs()"
@@ -82,7 +82,14 @@
       <div ng-repeat="rrr in res">
         <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
-          <h3 class="page-heading">{{series.name}}</h3>
+          <h3 class="page-heading">{{series.name}}
+            <span>
+              <span ng-repeat="(key, value) in series.tags" class="label label-tag" style="background-color: rgb(80, 134, 66); border-color: rgb(118, 172, 104);">
+                {{key}}: {{value}}
+              </span>
+            </span>
+          </h3>
+
           <table class="grafana-options-table">
           <tr class="admin-settings-section">
             <td ng-repeat="col in series.columns track by $index">
