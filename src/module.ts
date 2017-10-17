@@ -14,7 +14,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   datasourceSrv: any;
   uiSegmentSrv: any;
-  q: any;
+  templateSrv: any;
   $http: any;
   writing: boolean;
   history: Array<any>;
@@ -30,6 +30,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   // This is set in the form
   writeDataText: string;
+  q: string;
 
   defaults = {
     mode: 'current', // 'write', 'query'
@@ -42,13 +43,13 @@ class InfluxAdminCtrl extends PanelCtrl {
   };
 
   /** @ngInject **/
-  constructor($scope, $injector, $q, $rootScope, $http, uiSegmentSrv) {
+  constructor($scope, $injector, templateSrv, $rootScope, $http, uiSegmentSrv) {
     super($scope, $injector);
 
     this.datasourceSrv = $injector.get('datasourceSrv');
     this.uiSegmentSrv = uiSegmentSrv;
-    this.q = $q;
     this.$http = $http;
+    this.templateSrv = templateSrv;
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
     this.events.on('render', this.onRender.bind(this));
@@ -57,6 +58,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
     this.writing = false;
     this.history = [  ];
+
 
     // defaults configs
     _.defaultsDeep(this.panel, this.defaults);
@@ -336,9 +338,7 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   doSubmit() {
     let q = this.panel.query;
-    console.log("doSubmit()", this );
-
-    this.history.unshift( { text:q, value: q} );
+    this.history.unshift( { text:q, value: q} ); // Keep the template variables
     for(let i=1; i<this.history.length; i++) {
       if(this.history[i].value === q) {
         this.history.splice(i,1);
@@ -349,13 +349,17 @@ class InfluxAdminCtrl extends PanelCtrl {
       this.history.pop();
     }
 
+    this.q = this.templateSrv.replace(q, this.panel.scopedVars);
+    console.log("doSubmit()", this.q );
+
+
     var startTime = Date.now();
     this.error = null;
     this.clickableQuery = false;
     this.runningQuery = true;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       //console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
-      ds._seriesQuery( this.panel.query, this.panel.options ).then((data) => {
+      ds._seriesQuery( this.q, this.panel.options ).then((data) => {
         this.runningQuery = false;
         this.queryTime = (Date.now() - startTime) / 1000.0;
         this.clickableQuery = this.isClickableQuery();
