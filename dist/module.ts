@@ -1,3 +1,5 @@
+///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
+
 import config from 'app/core/config';
 import appEvents from 'app/core/app_events';
 
@@ -8,13 +10,44 @@ import moment from 'moment';
 
 
 class InfluxAdminCtrl extends PanelCtrl {
-  constructor($scope, $injector, $q, $rootScope, $timeout, $http, uiSegmentSrv) {
+  static templateUrl = 'partials/module.html';
+
+  datasourceSrv: any;
+  uiSegmentSrv: any;
+  q: any;
+  $http: any;
+  writing: boolean;
+  history: Array<any>;
+  dbs: Array<string>;
+  dbSeg: any;
+  queryInfo: any;
+
+  // Helpers for the html
+  clickableQuery: boolean;
+  runningQuery: boolean;
+  queryTime: Number;
+  rsp: any; // the raw response from InfluxDB
+
+  // This is set in the form
+  writeDataText: string;
+
+  defaults = {
+  	mode: 'current', // 'write', 'query'
+  	query: 'SHOW DIAGNOSTICS',
+  	options: {
+      database: null
+  	},
+  	time: 'YYYY-MM-DDTHH:mm:ssZ',
+  	updateEvery: 1200
+  };
+
+  /** @ngInject **/
+  constructor($scope, $injector, $q, $rootScope, $http, uiSegmentSrv) {
     super($scope, $injector);
+
     this.datasourceSrv = $injector.get('datasourceSrv');
-    this.injector = $injector;
     this.uiSegmentSrv = uiSegmentSrv;
     this.q = $q;
-    this.$timeout = $timeout;
     this.$http = $http;
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
@@ -26,16 +59,7 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.history = [  ];
 
     // defaults configs
-    var defaults = {
-      mode: 'current', // 'write', 'query'
-      query: 'SHOW DIAGNOSTICS',
-      options: {
-        database: null
-      },
-      time: 'YYYY-MM-DDTHH:mm:ssZ',
-      updateEvery: 1200
-    };
-    _.defaults(this.panel, defaults);
+    _.defaultsDeep(this.panel, this.defaults);
 
 
     // All influxdb datasources
@@ -84,8 +108,8 @@ class InfluxAdminCtrl extends PanelCtrl {
   }
 
   onInitEditMode() {
-    this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/editor.html',1);
-    this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/write.html',2);
+    this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/partials/editor.html',1);
+    this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/partials/write.html',2);
     this.editorTabIndex = 1;
   }
 
@@ -377,7 +401,6 @@ class InfluxAdminCtrl extends PanelCtrl {
     //console.log("onRefresh");
   }
 }
-InfluxAdminCtrl.templateUrl = 'module.html';
 
 export {
   InfluxAdminCtrl as PanelCtrl
