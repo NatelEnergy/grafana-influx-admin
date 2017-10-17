@@ -32,13 +32,13 @@ class InfluxAdminCtrl extends PanelCtrl {
   writeDataText: string;
 
   defaults = {
-  	mode: 'current', // 'write', 'query'
-  	query: 'SHOW DIAGNOSTICS',
-  	options: {
+    mode: 'current', // 'write', 'query'
+    query: 'SHOW DIAGNOSTICS',
+    options: {
       database: null
-  	},
-  	time: 'YYYY-MM-DDTHH:mm:ssZ',
-  	updateEvery: 1200
+    },
+    time: 'YYYY-MM-DDTHH:mm:ssZ',
+    updateEvery: 1200
   };
 
   /** @ngInject **/
