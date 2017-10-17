@@ -28,7 +28,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             InfluxAdminCtrl = (function (_super) {
                 __extends(InfluxAdminCtrl, _super);
                 /** @ngInject **/
-                function InfluxAdminCtrl($scope, $injector, $q, $rootScope, $http, uiSegmentSrv) {
+                function InfluxAdminCtrl($scope, $injector, templateSrv, $rootScope, $http, uiSegmentSrv) {
                     var _this = this;
                     _super.call(this, $scope, $injector);
                     this.defaults = {
@@ -42,8 +42,8 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     };
                     this.datasourceSrv = $injector.get('datasourceSrv');
                     this.uiSegmentSrv = uiSegmentSrv;
-                    this.q = $q;
                     this.$http = $http;
+                    this.templateSrv = templateSrv;
                     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
                     this.events.on('render', this.onRender.bind(this));
                     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
@@ -306,8 +306,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 InfluxAdminCtrl.prototype.doSubmit = function () {
                     var _this = this;
                     var q = this.panel.query;
-                    console.log("doSubmit()", this);
-                    this.history.unshift({ text: q, value: q });
+                    this.history.unshift({ text: q, value: q }); // Keep the template variables
                     for (var i = 1; i < this.history.length; i++) {
                         if (this.history[i].value === q) {
                             this.history.splice(i, 1);
@@ -317,13 +316,15 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     if (this.history.length > 15) {
                         this.history.pop();
                     }
+                    this.q = this.templateSrv.replace(q, this.panel.scopedVars);
+                    console.log("doSubmit()", this.q);
                     var startTime = Date.now();
                     this.error = null;
                     this.clickableQuery = false;
                     this.runningQuery = true;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         //console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
-                        ds._seriesQuery(_this.panel.query, _this.panel.options).then(function (data) {
+                        ds._seriesQuery(_this.q, _this.panel.options).then(function (data) {
                             _this.runningQuery = false;
                             _this.queryTime = (Date.now() - startTime) / 1000.0;
                             _this.clickableQuery = _this.isClickableQuery();

@@ -26,6 +26,7 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 - Added time format options
 - [WIP] Keep query history
 - Show tags from response
+- Support template variables in the query
 
 
 ##### v0.0.2

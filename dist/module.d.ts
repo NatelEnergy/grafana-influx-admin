@@ -4,7 +4,7 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     static templateUrl: string;
     datasourceSrv: any;
     uiSegmentSrv: any;
-    q: any;
+    templateSrv: any;
     $http: any;
     writing: boolean;
     history: Array<any>;
@@ -16,6 +16,7 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     queryTime: Number;
     rsp: any;
     writeDataText: string;
+    q: string;
     defaults: {
         mode: string;
         query: string;
@@ -26,7 +27,7 @@ declare class InfluxAdminCtrl extends PanelCtrl {
         updateEvery: number;
     };
     /** @ngInject **/
-    constructor($scope: any, $injector: any, $q: any, $rootScope: any, $http: any, uiSegmentSrv: any);
+    constructor($scope: any, $injector: any, templateSrv: any, $rootScope: any, $http: any, uiSegmentSrv: any);
     isShowQueryWindow(): boolean;
     isShowCurrentQueries(): boolean;
     onInitEditMode(): void;
