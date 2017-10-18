@@ -21,7 +21,7 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 
 ##### v0.0.3 (not released yet)
 
-- [WIP] Converted to typescript project based on [typescript-template-datasource](https://github.com/grafana/typescript-template-datasource)
+- Converted to typescript project based on [typescript-template-datasource](https://github.com/grafana/typescript-template-datasource)
 - Select Databases.  Note this requires Grafana 4.6+ to work
 - Added time format options
 - [WIP] Keep query history
