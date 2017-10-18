@@ -16,6 +16,14 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 ![Write Data](https://raw.githubusercontent.com/NatelEnergy/grafana-influx-admin/master/src/img/screenshot-write.png)
 
 
+### Building
+
+To complie, run:
+```
+yarn install
+grunt
+```
+
 
 #### Changelog
 
