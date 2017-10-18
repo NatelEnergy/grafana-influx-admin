@@ -20,7 +20,8 @@ This plugin expects there to be at least one InfluxDB datasource configured.
 
 To complie, run:
 ```
-yarn install
+npm install -g yarn
+yarn install --pure-lockfile
 grunt
 ```
 
