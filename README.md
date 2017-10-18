@@ -1,8 +1,8 @@
 ## InfluxDB admin
 
-This panel duplicates the simple features avaliable in the [Web Admin Interface](https://docs.influxdata.com/influxdb/v1.2/tools/web_admin/).  That UI is now deprecated and disabled by default.
+This panel duplicates features from the now depricated [Web Admin Interface](https://docs.influxdata.com/influxdb/v1.2/tools/web_admin/).
 
-This panel lets you pick see the currently running queries and easily kill them.
+This panel lets you see the currently running queries and easily kill them.
 
 This plugin expects there to be at least one InfluxDB datasource configured.
 
@@ -28,12 +28,11 @@ grunt
 
 #### Changelog
 
-##### v0.0.3 (not released yet)
+##### v0.0.3
 
 - Converted to typescript project based on [typescript-template-datasource](https://github.com/grafana/typescript-template-datasource)
-- Select Databases.  Note this requires Grafana 4.6+ to work
+- Select Databases.  This only works with [PR#8096](https://github.com/grafana/grafana/pull/8096)
 - Added time format options
-- [WIP] Keep query history
 - Show tags from response
 - Support template variables in the query
 

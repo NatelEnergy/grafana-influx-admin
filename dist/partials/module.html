@@ -45,15 +45,10 @@
           data-toggle="dropdown"
           data-placement="top"><i class="fa fa-bookmark-o"></i></a>
 
-<!--
-        <a class="gf-form-label tight-form-func dropdown-toggle"
-          gf-dropdown="ctrl.getQueryHistory();"
-          data-toggle="dropdown"
-          data-placement="top"><i class="fa fa-clock-o"></i></a>
--->
-
         <input type="text"
           ng-model="ctrl.panel.query"
+          ng-model-options="{updateOn : 'change'}"
+          ng-change="ctrl.onQueryChanged()"
           class="gf-form-input"
           spellcheck="false">
         </input>
@@ -69,9 +64,9 @@
           <i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : (ctrl.isPostQuery() ? 'fa fa-sign-in' : 'fa fa-search')"></i> {{ ctrl.isPostQuery() ? 'POST' : '' }}</a>
       </div>
     </form>
-    <div ng-show="ctrl.queryTime > 0" style="color:#666; font-size:.9em;">
+    <div style="color:#666; font-size:.9em;">
       <span ng-hide="ctrl.q == ctrl.panel.query">{{ ctrl.q }}</span>
-      <span style="float:right;">{{ ctrl.queryTime }}s</span>
+      <span style="float:right;">{{ ctrl.rspInfo }}</span>
     </div>
     <div style="clear:both;"></div>
 
@@ -79,7 +74,7 @@
       <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
     </div>
 
-    <div ng-repeat="res in ctrl.rsp" ng-show="ctrl.isShowQueryWindow()">
+    <div ng-repeat="res in ctrl.rsp">
       <div ng-repeat="rrr in res">
         <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 

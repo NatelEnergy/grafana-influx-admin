@@ -1,20 +1,21 @@
 /// <reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
 import { PanelCtrl } from 'app/plugins/sdk';
 declare class InfluxAdminCtrl extends PanelCtrl {
+    private templateSrv;
+    private $http;
+    private uiSegmentSrv;
+    private datasourceSrv;
     static templateUrl: string;
-    datasourceSrv: any;
-    uiSegmentSrv: any;
-    templateSrv: any;
-    $http: any;
     writing: boolean;
     history: Array<any>;
     dbs: Array<string>;
     dbSeg: any;
+    ds: any;
     queryInfo: any;
     clickableQuery: boolean;
     runningQuery: boolean;
-    queryTime: Number;
     rsp: any;
+    rspInfo: string;
     writeDataText: string;
     q: string;
     defaults: {
@@ -27,7 +28,7 @@ declare class InfluxAdminCtrl extends PanelCtrl {
         updateEvery: number;
     };
     /** @ngInject **/
-    constructor($scope: any, $injector: any, templateSrv: any, $rootScope: any, $http: any, uiSegmentSrv: any);
+    constructor($scope: any, $injector: any, templateSrv: any, $http: any, uiSegmentSrv: any, datasourceSrv: any);
     isShowQueryWindow(): boolean;
     isShowCurrentQueries(): boolean;
     onInitEditMode(): void;
@@ -51,7 +52,6 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     onQueryChanged(): void;
     doSubmit(): void;
     onPanelInitalized(): void;
-    onRender(): void;
     onRefresh(): void;
 }
 export { InfluxAdminCtrl as PanelCtrl };

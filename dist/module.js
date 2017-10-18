@@ -28,9 +28,13 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             InfluxAdminCtrl = (function (_super) {
                 __extends(InfluxAdminCtrl, _super);
                 /** @ngInject **/
-                function InfluxAdminCtrl($scope, $injector, templateSrv, $rootScope, $http, uiSegmentSrv) {
+                function InfluxAdminCtrl($scope, $injector, templateSrv, $http, uiSegmentSrv, datasourceSrv) {
                     var _this = this;
                     _super.call(this, $scope, $injector);
+                    this.templateSrv = templateSrv;
+                    this.$http = $http;
+                    this.uiSegmentSrv = uiSegmentSrv;
+                    this.datasourceSrv = datasourceSrv;
                     this.defaults = {
                         mode: 'current',
                         query: 'SHOW DIAGNOSTICS',
@@ -40,12 +44,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         time: 'YYYY-MM-DDTHH:mm:ssZ',
                         updateEvery: 1200
                     };
-                    this.datasourceSrv = $injector.get('datasourceSrv');
-                    this.uiSegmentSrv = uiSegmentSrv;
-                    this.$http = $http;
-                    this.templateSrv = templateSrv;
                     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
-                    this.events.on('render', this.onRender.bind(this));
                     this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
                     this.events.on('refresh', this.onRefresh.bind(this));
                     this.writing = false;
@@ -100,9 +99,10 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     console.log("WRITE", this.writeDataText);
                     this.writing = true;
                     this.error = null;
+                    this.inspector = null;
                     return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
-                        var db = _this.panel.options.database;
-                        if (lodash_1.default.isNil(db)) {
+                        var db = ds.database;
+                        if (!lodash_1.default.isNil(_this.panel.options.database) && ds.allowDatabaseQuery) {
                             db = ds.database;
                         }
                         _this.$http({
@@ -119,6 +119,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             _this.writing = false;
                             console.log("Wite ERROR", err);
                             _this.error = err.data.error + " [" + err.status + "]";
+                            _this.inspector = { error: err };
                         });
                     });
                 };
@@ -133,7 +134,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         yesText: 'Kill Query',
                         onConfirm: function () {
                             _this.datasourceSrv.get(_this.panel.datasource).then(function (ds) {
-                                ds._seriesQuery('kill query ' + qinfo.id, _this.panel.options).then(function (res) {
+                                ds._seriesQuery('kill query ' + qinfo.id).then(function (res) {
                                     console.log('killed', qinfo, res);
                                 });
                             });
@@ -144,6 +145,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 InfluxAdminCtrl.prototype.updateShowQueries = function () {
                     var _this = this;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+                        _this.ds = ds;
                         ds._seriesQuery('SHOW QUERIES', _this.panel.options).then(function (data) {
                             var temp = [];
                             lodash_1.default.forEach(data.results[0].series[0].values, function (res) {
@@ -184,12 +186,15 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                                     _this.updateShowQueries();
                                 }, _this.panel.updateEvery);
                             }
+                        }).catch(function (err) {
+                            console.log("Show Query Error: ", err);
                         });
                     });
                 };
                 InfluxAdminCtrl.prototype.dbChanged = function () {
                     var _this = this;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
+                        _this.ds = ds;
                         console.log("DB Changed", _this.dbSeg);
                         var db = _this.dbSeg.value;
                         if (db === ds.database || db === "default") {
@@ -213,14 +218,14 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 InfluxAdminCtrl.prototype.getDBsegs = function () {
                     var _this = this;
                     return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
-                        return ds.metricFindQuery("SHOW DATABASES", _this.panel.options).then(function (data) {
+                        return ds.metricFindQuery("SHOW DATABASES").then(function (data) {
                             var segs = [];
                             lodash_1.default.forEach(data, function (val) {
                                 segs.push(_this.uiSegmentSrv.newSegment(val.text));
                             });
                             return segs;
-                        }, function (err) {
-                            console.log("TODO... error???", err);
+                        }).catch(function (err) {
+                            console.log("DBSegs error???", err);
                         });
                     });
                 };
@@ -261,7 +266,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     this.onQueryChanged();
                 };
                 InfluxAdminCtrl.prototype.isClickableQuery = function () {
-                    if ("SHOW DATABASES" == this.panel.query) {
+                    if ("SHOW DATABASES" == this.panel.query && this.panel.queryDB) {
                         return true;
                     }
                     if ("SHOW MEASUREMENTS" == this.panel.query) {
@@ -274,7 +279,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 };
                 InfluxAdminCtrl.prototype.onClickedResult = function (res) {
                     console.log("CLICKED", this.panel.query, res);
-                    if ("SHOW DATABASES" == this.panel.query) {
+                    if ("SHOW DATABASES" == this.panel.query && this.panel.queryDB) {
                         this.panel.query = 'SHOW MEASUREMENTS';
                         this.dbSeg = this.uiSegmentSrv.newSegment(res[0]);
                         this.dbChanged();
@@ -317,17 +322,22 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         this.history.pop();
                     }
                     this.q = this.templateSrv.replace(q, this.panel.scopedVars);
-                    console.log("doSubmit()", this.q);
                     var startTime = Date.now();
                     this.error = null;
+                    this.inspector = null;
                     this.clickableQuery = false;
                     this.runningQuery = true;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
-                        //console.log( 'doSubmit >>>', ds, this.panel.query, this.panel.options);
+                        _this.ds = ds;
+                        if (!ds.allowDatabaseQuery) {
+                            _this.panel.queryDB = false;
+                        }
                         ds._seriesQuery(_this.q, _this.panel.options).then(function (data) {
                             _this.runningQuery = false;
-                            _this.queryTime = (Date.now() - startTime) / 1000.0;
                             _this.clickableQuery = _this.isClickableQuery();
+                            var rowCount = 0;
+                            var seriesCount = 0;
+                            var queryTime = (Date.now() - startTime) / 1000.0;
                             // Process the timestamps
                             lodash_1.default.forEach(data.results, function (query) {
                                 lodash_1.default.forEach(query, function (res) {
@@ -337,17 +347,37 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                                                 row[0] = moment_1.default(row[0]).format(_this.panel.time);
                                             });
                                         }
+                                        if (series.values) {
+                                            rowCount += series.values.length;
+                                        }
+                                        seriesCount++;
                                     });
                                 });
                             });
                             // Set this after procesing the timestamps
                             _this.rsp = data;
-                        }, function (err) {
-                            // console.log( 'ERROR with series query', err );
+                            if (seriesCount > 0) {
+                                _this.rspInfo = seriesCount + ' series, ' + rowCount + ' values, in ' + queryTime + 's';
+                            }
+                            else {
+                                _this.rspInfo = "No Results in " + queryTime + "s";
+                            }
+                        }).catch(function (err) {
                             _this.runningQuery = false;
                             _this.clickableQuery = false;
-                            _this.error = err.message;
-                            _this.queryTime = (Date.now() - startTime) / 1000.0;
+                            if (err.data) {
+                                _this.error = err.data.message;
+                                _this.inspector = { error: err };
+                            }
+                            else if (err.message) {
+                                _this.error = err.message;
+                            }
+                            else {
+                                _this.error = err;
+                            }
+                            var queryTime = (Date.now() - startTime) / 1000.0;
+                            _this.rspInfo = 'Error in ' + queryTime + 's';
+                            console.log('doSubmit error', err, _this);
                         });
                     });
                 };
@@ -355,14 +385,12 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     //console.log("onPanelInitalized()")
                     this.onQueryChanged();
                 };
-                InfluxAdminCtrl.prototype.onRender = function () {
-                    //console.log("onRender");
-                };
                 InfluxAdminCtrl.prototype.onRefresh = function () {
                     if (this.isShowCurrentQueries()) {
                         this.updateShowQueries();
                     }
-                    //console.log("onRefresh");
+                    else {
+                    }
                 };
                 InfluxAdminCtrl.templateUrl = 'partials/module.html';
                 return InfluxAdminCtrl;

@@ -10,9 +10,13 @@
       </select>
     </div>
 
-    <metric-segment segment="ctrl.dbSeg" get-options="ctrl.getDBsegs()" on-change="ctrl.dbChanged()"></metric-segment>
+    <metric-segment
+      ng-show="ctrl.ds.allowDatabaseQuery"
+      segment="ctrl.dbSeg"
+      get-options="ctrl.getDBsegs()"
+      on-change="ctrl.dbChanged()"></metric-segment>
 
-    &nbsp;&nbsp; {{ ctrl.db.database }}
+    &nbsp;&nbsp; {{ ctrl.ds.database }}
   </div>
 
   <div class="gf-form">
@@ -25,7 +29,7 @@
     </div>
   </div>
 
-  <div class="gf-form" ng-show="ctrl.panel.mode == 'query'">
+  <div class="gf-form" ng-show="ctrl.panel.mode == 'query' && ctrl.ds.allowDatabaseQuery">
     <gf-form-switch class="gf-form"
       label="Show DB"
       label-class="gf-form-label width-8"
@@ -34,8 +38,8 @@
 
   <div class="gf-form">
     <span class="gf-form-label width-8">Time Format</span>
-    <input type="text" 
-      class="gf-form-input max-width-16" 
+    <input type="text"
+      class="gf-form-input max-width-16"
       ng-model="ctrl.panel.time"
       ng-change="ctrl.onQueryChanged()">
     &nbsp; <a href="https://momentjs.com/docs/#/displaying/format/"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
