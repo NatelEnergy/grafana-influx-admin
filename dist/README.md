@@ -28,6 +28,10 @@ grunt
 
 #### Changelog
 
+
+##### v0.0.4 (not released yet)
+- TODO...
+
 ##### v0.0.3
 
 - Converted to typescript project based on [typescript-template-datasource](https://github.com/grafana/typescript-template-datasource)
