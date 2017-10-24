@@ -20,10 +20,12 @@ class InfluxAdminCtrl extends PanelCtrl {
 
   // The running Queries
   queryInfo: any;
+  queryRefresh: any; // $timeout promice
+
+  loading: boolean = false; // should be in base PanelCtrl???
 
   // Helpers for the html
   clickableQuery: boolean;
-  runningQuery: boolean;
   rsp: any; // the raw response from InfluxDB
   rspInfo: string;
 
@@ -34,11 +36,10 @@ class InfluxAdminCtrl extends PanelCtrl {
   defaults = {
     mode: 'current', // 'write', 'query'
     query: 'SHOW DIAGNOSTICS',
-    options: {
-      database: null
-    },
+    database: null,
     time: 'YYYY-MM-DDTHH:mm:ssZ',
-    updateEvery: 1200
+    refresh: false,
+    refreshInterval: 1200
   };
 
   /** @ngInject **/
@@ -46,7 +47,6 @@ class InfluxAdminCtrl extends PanelCtrl {
     super($scope, $injector);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
-    this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
     this.events.on('refresh', this.onRefresh.bind(this));
 
     this.writing = false;
@@ -81,16 +81,11 @@ class InfluxAdminCtrl extends PanelCtrl {
       txt = this.panel.options.database;
     }
     this.dbSeg = this.uiSegmentSrv.newSegment(txt);
-
     this.queryInfo = {
       last: 0,
       count: 0,
       queries: []
     };
-
-    if(this.isShowCurrentQueries() && this.panel.updateEvery > 0) {
-      this.updateShowQueries();
-    }
   }
 
 
@@ -156,10 +151,17 @@ class InfluxAdminCtrl extends PanelCtrl {
     return;
   }
 
-  updateShowQueries() {
+  private updateShowQueries() {
+    // Cancel any pending calls
+    this.$timeout.cancel( this.queryRefresh );
+
+    // Don't query when other things are fullscreen
+    if (this.otherPanelInFullscreenMode()) { return; }
+
+
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
-
+      this.loading = true;
       ds._seriesQuery( 'SHOW QUERIES', this.panel.options ).then( (data) => {
         var temp = [];
         _.forEach(data.results[0].series[0].values, (res) => {
@@ -178,7 +180,7 @@ class InfluxAdminCtrl extends PanelCtrl {
             mag = 60*60;
           }
           let secs = parseInt( durr.substring(0,durr.length-1)) * mag;
-          if(secs == 0 && 'SHOW QUERIES' == res[1]) {
+          if('SHOW QUERIES' == res[1]) {
             // Don't include the current query
             this.queryInfo.lastId = res[0];
           }
@@ -194,17 +196,20 @@ class InfluxAdminCtrl extends PanelCtrl {
         });
 
         this.queryInfo.count++;
-        this.queryInfo.last = Date.now();
+        this.queryInfo.last = moment( Date.now() );
         this.queryInfo.queries = temp;
+        this.$timeout.cancel( this.queryRefresh );
+        this.loading = false;
 
         // Check if we should refresh the view
-        if( this.isShowCurrentQueries() && this.panel.updateEvery>0 ) {
-          this.queryInfo.timer = this.$timeout( () => {
+        if( this.isShowCurrentQueries() && this.panel.refresh && this.panel.refreshInterval > 0 ) {
+          this.queryRefresh = this.$timeout( () => {
             this.updateShowQueries()
-          }, this.panel.updateEvery);
+          }, this.panel.refreshInterval);
         }
       }).catch( (err) => {
         console.log( "Show Query Error: ", err );
+        this.loading = false;
       });
     });
   }
@@ -288,14 +293,17 @@ class InfluxAdminCtrl extends PanelCtrl {
   }
 
   isClickableQuery() {
-    if( "SHOW DATABASES" == this.panel.query && this.panel.queryDB ) {
-      return true;
-    }
-    if( "SHOW MEASUREMENTS" == this.panel.query) {
-      return true;
-    }
-    if( this.panel.query.startsWith( 'SHOW FIELD KEYS FROM "')) {
-      return true;
+    let q = this.q;
+    if( q && q.startsWith('SHOW ')) {
+      if( "SHOW DATABASES" == q && this.panel.queryDB ) {
+        return true;
+      }
+      if( q.startsWith( 'SHOW MEASUREMENTS')) {
+        return true;
+      }
+      if( q.startsWith( 'SHOW FIELD KEYS')) {
+        return true;
+      }
     }
     return false;
   }
@@ -305,15 +313,15 @@ class InfluxAdminCtrl extends PanelCtrl {
 
     if( "SHOW DATABASES" == this.panel.query && this.panel.queryDB) {
       this.panel.query = 'SHOW MEASUREMENTS';
-      this.dbSeg = this.uiSegmentSrv.newSegment( res[0] );
+      this.dbSeg = this.uiSegmentSrv.newSegment( res );
       this.dbChanged();
     }
     else if( "SHOW MEASUREMENTS" == this.panel.query) {
-      this.setQuery( 'SHOW FIELD KEYS FROM "' + res[0] +'"' );
+      this.setQuery( 'SHOW FIELD KEYS FROM "' + res +'"' );
     }
     else if( this.panel.query.startsWith( 'SHOW FIELD KEYS FROM "')) {
       var str = this.panel.query.split(/"/)[1];
-      this.setQuery( 'SELECT "' + res[0] +'" FROM "' + str +'" ORDER BY time desc LIMIT 10' );
+      this.setQuery( 'SELECT "' + res +'" FROM "' + str +'" ORDER BY time desc LIMIT 10' );
     }
     return;
   }
@@ -355,19 +363,27 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.error = null;
     this.inspector = null;
     this.clickableQuery = false;
-    this.runningQuery = true;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
-      if( !ds.allowDatabaseQuery ) {
-        this.panel.queryDB = false;
+
+      var opts: any = {};
+      if( ds.allowDatabaseQuery && this.panel.queryDB && this.panel.database ) {
+        opts.database = this.panel.database;
+      }
+      if(this.isPostQuery()) {
+        opts.method = 'POST';
+        console.log('TODO, change the request to a POST query: ', opts);
       }
 
-      ds._seriesQuery( this.q, this.panel.options ).then( (data) => {
-        this.runningQuery = false;
+      this.loading = true;
+      ds._seriesQuery( this.q, opts ).then( (data) => {
+        this.loading = false;
         this.clickableQuery = this.isClickableQuery();
         var rowCount = 0;
         var seriesCount = 0;
         var queryTime = (Date.now() - startTime) / 1000.0;
+
+        console.log('GOT result', startTime, Date.now(), queryTime);
 
         // Process the timestamps
         _.forEach(data.results, (query) => {
@@ -380,7 +396,19 @@ class InfluxAdminCtrl extends PanelCtrl {
               }
               if( series.values ) {
                 rowCount += series.values.length;
+
+                if( series.values.length == 1) { // Show rows as columns (SHOW DIAGNOSTICS)
+                  series.rowsAsCols = [];
+                  _.forEach(series.columns, (col, idx) => {
+                    let xform = [col];
+                    _.forEach(series.values, (row) => {
+                      xform.push( row[idx] );
+                    });
+                    series.rowsAsCols.push(xform);
+                  });
+                }
               }
+
               seriesCount++;
             });
           });
@@ -394,8 +422,12 @@ class InfluxAdminCtrl extends PanelCtrl {
         else {
           this.rspInfo = "No Results in " +queryTime+"s";
         }
+
+        console.log('Finished processing', Date.now());
+
+
       }).catch( (err) => {
-        this.runningQuery = false;
+        this.loading = false;
         this.clickableQuery = false;
         if(err.data) {
           this.error = err.data.message;
@@ -415,17 +447,14 @@ class InfluxAdminCtrl extends PanelCtrl {
     });
   }
 
-  onPanelInitalized() {
-    //console.log("onPanelInitalized()")
-    this.onQueryChanged();
-  }
-
   onRefresh() {
     if( this.isShowCurrentQueries() ) {
       this.updateShowQueries();
     }
     else {
-      // anythign?
+      if(!this.isPostQuery()) {
+        this.doSubmit();
+      }
     }
   }
 }

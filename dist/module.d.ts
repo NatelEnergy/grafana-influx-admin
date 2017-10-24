@@ -12,8 +12,9 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     dbSeg: any;
     ds: any;
     queryInfo: any;
+    queryRefresh: any;
+    loading: boolean;
     clickableQuery: boolean;
-    runningQuery: boolean;
     rsp: any;
     rspInfo: string;
     writeDataText: string;
@@ -21,11 +22,10 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     defaults: {
         mode: string;
         query: string;
-        options: {
-            database: any;
-        };
+        database: any;
         time: string;
-        updateEvery: number;
+        refresh: boolean;
+        refreshInterval: number;
     };
     /** @ngInject **/
     constructor($scope: any, $injector: any, templateSrv: any, $http: any, uiSegmentSrv: any, datasourceSrv: any);
@@ -34,7 +34,7 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     onInitEditMode(): void;
     writeData(): any;
     askToKillQuery(qinfo: any): void;
-    updateShowQueries(): void;
+    private updateShowQueries();
     dbChanged(): void;
     configChanged(): void;
     getDBsegs(): any;
@@ -51,7 +51,6 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     isPostQuery(): boolean;
     onQueryChanged(): void;
     doSubmit(): void;
-    onPanelInitalized(): void;
     onRefresh(): void;
 }
 export { InfluxAdminCtrl as PanelCtrl };

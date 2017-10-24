@@ -22,21 +22,36 @@
   <div class="gf-form">
     <span class="gf-form-label width-8">Show</span>
     <div class="gf-form-select-wrapper max-width-23">
-      <select class="gf-form-input" ng-model="ctrl.panel.mode">
+      <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.configChanged()">
         <option value="current">Current Queries</option>
         <option value="query">Query Window</option>
       </select>
     </div>
   </div>
 
+  <div class="gf-form" ng-show="ctrl.panel.mode == 'current'">
+    <gf-form-switch class="gf-form-inline"
+      label="Refresh"
+      label-class="gf-form-label width-8"
+      checked="ctrl.panel.refresh"
+      on-change="ctrl.configChanged()"></gf-form-switch>
+      <span ng-show="ctrl.panel.refresh" class="gf-form-label width-8">Interval (ms)</span>
+      <input ng-show="ctrl.panel.refresh" type="number"
+       min="0" max="100000" 
+       ng-model="ctrl.panel.refreshInterval" 
+       class="gf-form-input max-width-10" 
+       ng-change="ctrl.configChanged()" />
+  </div>
+
   <div class="gf-form" ng-show="ctrl.panel.mode == 'query' && ctrl.ds.allowDatabaseQuery">
     <gf-form-switch class="gf-form"
       label="Show DB"
       label-class="gf-form-label width-8"
-      checked="ctrl.panel.queryDB"></gf-form-switch>
+      checked="ctrl.panel.queryDB"
+      on-change="ctrl.configChanged()"></gf-form-switch>
   </div>
 
-  <div class="gf-form">
+  <div class="gf-form" ng-show="ctrl.panel.mode == 'query'">
     <span class="gf-form-label width-8">Time Format</span>
     <input type="text"
       class="gf-form-input max-width-16"

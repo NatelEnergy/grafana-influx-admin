@@ -1,7 +1,7 @@
 
   <div ng-show="ctrl.isShowCurrentQueries()">
 
-      <div class="search-results-container" ng-style="{height: ctrl.height, border: '0px solid red'}">
+      <div class="search-results-container" ng-style="{height: ctrl.height, padding:'0px'}">
         <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
           ng-click="ctrl.askToKillQuery( qinfo )"
           class="search-item pointer"
@@ -24,11 +24,12 @@
           </span>
         </a>
 
-        <div href="#" class="search-item" >
-          No Running Queries
+        <div ng-hide="ctrl.queryInfo.queries.length > 0" href="#" class="search-item" >
+          No Queries Running
           <span class="search-result-tags">
+            {{ ctrl.queryInfo.count }} &nbsp;
             <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
-              {{ ctrl.queryInfo.lastId }}
+              @ {{ ctrl.queryInfo.last.format( 'h:mm:ss a' ) }}
             </span>
           </span>
         </div>
@@ -37,7 +38,6 @@
 
   </div>
   <div ng-show="ctrl.isShowQueryWindow()">
-
 
     <form class="gf-form" ng-submit="ctrl.onSubmit()">
         <a class="gf-form-label tight-form-func dropdown-toggle"
@@ -61,8 +61,7 @@
 
         <a ng-click="ctrl.doSubmit()" style="white-space: nowrap;"
           ng-class="ctrl.isPostQuery() ? 'btn btn-primary' : 'btn btn-inverse'">
-          <i ng-class="ctrl.runningQuery ? 'fa fa-spinner fa-spin' : (ctrl.isPostQuery() ? 'fa fa-sign-in' : 'fa fa-search')"></i> {{ ctrl.isPostQuery() ? 'POST' : '' }}</a>
-      </div>
+          <i ng-class="ctrl.loading ? 'fa fa-spinner fa-spin' : (ctrl.isPostQuery() ? 'fa fa-sign-in' : 'fa fa-search')"></i> {{ ctrl.isPostQuery() ? 'POST' : '' }}</a>
     </form>
     <div style="color:#666; font-size:.9em;">
       <span ng-hide="ctrl.q == ctrl.panel.query">{{ ctrl.q }}</span>
@@ -76,33 +75,50 @@
 
     <div ng-repeat="res in ctrl.rsp">
       <div ng-repeat="rrr in res">
+
+        <div ng-repeat="msg in rrr.messages" class="alert alert-error" style="margin-bottom:8px;">
+          <strong>{{ msg.level }}:</strong> &nbsp; {{ msg.text }}
+        </div>
+
         <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
           <h3 class="page-heading">{{series.name}}
             <span>
-              <span ng-repeat="(key, value) in series.tags" class="label label-tag" style="background-color: rgb(80, 134, 66); border-color: rgb(118, 172, 104);">
+              <span ng-repeat="(key, value) in series.tags" class="label label-tag" style="background-color: rgb(80, 134, 66); border-color: rgb(118, 172, 104); margin-right:5px;">
                 {{key}}: {{value}}
               </span>
             </span>
           </h3>
 
-          <table class="grafana-options-table">
-          <tr class="admin-settings-section">
-            <td ng-repeat="col in series.columns track by $index">
-            {{ col }} &nbsp;
-            </td>
-          </tr>
 
-          <tr ng-repeat="row in series.values track by $index">
-            <td ng-repeat="col in row track by $index">
-              <span ng-show="!ctrl.clickableQuery">
+          <table ng-show="series.rowsAsCols != null" class="grafana-options-table">
+            <tr ng-repeat="row in series.rowsAsCols">
+              <td ng-repeat="col in row" 
+                  ng-class="$first ? 'admin-settings-section' : ''" 
+                  ng-style="$first ? { width: '1px'} : {}">
                 {{ col }} &nbsp;
-              </span>
-              <a ng-show="ctrl.clickableQuery" ng-click="ctrl.onClickedResult(row)">
+              </td>
+            </tr>
+          </table>
+
+
+          <table ng-hide="series.rowsAsCols != null" class="grafana-options-table">
+            <tr class="admin-settings-section">
+              <td ng-repeat="col in series.columns" class="admin-settings-section">
                 {{ col }} &nbsp;
-              </span>
-            </td>
-          </tr>
+              </td>
+            </tr>
+
+            <tr ng-repeat="row in series.values track by $index">
+              <td ng-repeat="col in row track by $index">
+                <span ng-show="!ctrl.clickableQuery">
+                  {{ col }} &nbsp;
+                </span>
+                <a ng-show="ctrl.clickableQuery" ng-click="ctrl.onClickedResult(col)">
+                  {{ col }} &nbsp;
+                </span>
+              </td>
+            </tr>
           </table>
 
         </div>
