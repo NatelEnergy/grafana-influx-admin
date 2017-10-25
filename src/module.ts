@@ -383,7 +383,7 @@ class InfluxAdminCtrl extends PanelCtrl {
         var seriesCount = 0;
         var queryTime = (Date.now() - startTime) / 1000.0;
 
-        console.log('GOT result', startTime, Date.now(), queryTime);
+       // console.log('GOT result', startTime, Date.now(), queryTime);
 
         // Process the timestamps
         _.forEach(data.results, (query) => {
@@ -423,7 +423,7 @@ class InfluxAdminCtrl extends PanelCtrl {
           this.rspInfo = "No Results in " +queryTime+"s";
         }
 
-        console.log('Finished processing', Date.now());
+        //console.log('Finished processing', Date.now());
 
 
       }).catch( (err) => {

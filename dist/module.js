@@ -352,7 +352,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             var rowCount = 0;
                             var seriesCount = 0;
                             var queryTime = (Date.now() - startTime) / 1000.0;
-                            console.log('GOT result', startTime, Date.now(), queryTime);
+                            // console.log('GOT result', startTime, Date.now(), queryTime);
                             // Process the timestamps
                             lodash_1.default.forEach(data.results, function (query) {
                                 lodash_1.default.forEach(query, function (res) {
@@ -387,7 +387,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             else {
                                 _this.rspInfo = "No Results in " + queryTime + "s";
                             }
-                            console.log('Finished processing', Date.now());
+                            //console.log('Finished processing', Date.now());
                         }).catch(function (err) {
                             _this.loading = false;
                             _this.clickableQuery = false;
