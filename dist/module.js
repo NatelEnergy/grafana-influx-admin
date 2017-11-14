@@ -68,9 +68,9 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             this.panel.datasource = this.dbs[0];
                         }
                     }
-                    var txt = "default";
-                    if (this.panel.options.database) {
-                        txt = this.panel.options.database;
+                    var txt = this.panel.datasource;
+                    if (lodash_1.default.isNil(txt)) {
+                        txt = 'default';
                     }
                     this.dbSeg = this.uiSegmentSrv.newSegment(txt);
                     this.queryInfo = {
@@ -364,7 +364,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                                         }
                                         if (series.values) {
                                             rowCount += series.values.length;
-                                            if (series.values.length == 1) {
+                                            if (series.values.length == 1 && !_this.clickableQuery) {
                                                 series.rowsAsCols = [];
                                                 lodash_1.default.forEach(series.columns, function (col, idx) {
                                                     var xform = [col];

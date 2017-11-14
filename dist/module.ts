@@ -76,9 +76,9 @@ class InfluxAdminCtrl extends PanelCtrl {
         this.panel.datasource = this.dbs[0];
       }
     }
-    var txt = "default";
-    if(this.panel.options.database) {
-      txt = this.panel.options.database;
+    var txt = this.panel.datasource;
+    if(_.isNil( txt )) {
+      txt = 'default';
     }
     this.dbSeg = this.uiSegmentSrv.newSegment(txt);
     this.queryInfo = {
@@ -397,7 +397,7 @@ class InfluxAdminCtrl extends PanelCtrl {
               if( series.values ) {
                 rowCount += series.values.length;
 
-                if( series.values.length == 1) { // Show rows as columns (SHOW DIAGNOSTICS)
+                if( series.values.length == 1 && !this.clickableQuery ) { // Show rows as columns (SHOW DIAGNOSTICS)
                   series.rowsAsCols = [];
                   _.forEach(series.columns, (col, idx) => {
                     let xform = [col];
