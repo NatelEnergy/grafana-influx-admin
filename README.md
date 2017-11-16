@@ -29,7 +29,8 @@ grunt
 #### Changelog
 
 
-##### v0.0.4 (not released yet)
+##### v0.0.4
+
 - Fix issue always showing query results
 - When there is only one row, swap rows/cols (ie: SHOW DIAGNOSTICS)
 - Improve auto-refresh behavior.
