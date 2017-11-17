@@ -179,7 +179,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         ds._seriesQuery('SHOW QUERIES', _this.panel.options).then(function (data) {
                             var temp = [];
                             var values = data.results[0].series[0].values;
-                            if (values.length == 1 && values.length[0][1] === 'SHOW QUERIES') {
+                            if (values.length == 1 && values[0][1] === 'SHOW QUERIES') {
                             }
                             else {
                                 lodash_1.default.forEach(values, function (res) {

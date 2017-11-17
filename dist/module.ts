@@ -191,10 +191,11 @@ class InfluxAdminCtrl extends PanelCtrl {
       this.ds = ds;
       this.loading = true;
       this.error = null;
+
       ds._seriesQuery( 'SHOW QUERIES', this.panel.options ).then( (data) => {
         var temp = [];
         let values = data.results[0].series[0].values;
-        if(values.length == 1 && values.length[0][1] === 'SHOW QUERIES') {
+        if(values.length == 1 && values[0][1] === 'SHOW QUERIES') {
           // this is the query we sent!
         }
         else {
