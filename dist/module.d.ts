@@ -34,6 +34,7 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     onInitEditMode(): void;
     writeData(): any;
     askToKillQuery(qinfo: any): void;
+    getSecondsFromString(durr: string): Number;
     private updateShowQueries();
     dbChanged(): void;
     configChanged(): void;

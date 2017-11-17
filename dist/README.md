@@ -35,6 +35,8 @@ grunt
 - When there is only one row, swap rows/cols (ie: SHOW DIAGNOSTICS)
 - Improve auto-refresh behavior.
 - Show 'message' response.  (ie: please use POST)
+- Fix query time sorting
+- show 'status' field (killed, etc)
 
 
 ##### v0.0.3

@@ -10,15 +10,15 @@
           <span class="search-result-tags">
             &nbsp;&nbsp;<i class="fa fa-ban"></i>
           </span>
-          <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
+          <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136); margin-right:5px;">
             {{ qinfo.time }}
-        </span>&nbsp;
-          <span class="label label-tag" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48);">
+          </span>
+          <span class="label label-tag" ng-show="qinfo.status.length > 0" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136); margin-right:5px;">
+            {{ qinfo.status }}
+          </span>
+          <span class="label label-tag" ng-show="qinfo.db.length > 0" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48); margin-right:5px;">
             {{ qinfo.db }}
-          </span>&nbsp;
-          <span class="label label-tag" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48);">
-            {{ qinfo.id }}
-          </span>&nbsp;
+          </span>
           <span class="search-result-link">
             {{ qinfo.query }}
           </span>

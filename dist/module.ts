@@ -151,6 +151,34 @@ class InfluxAdminCtrl extends PanelCtrl {
     return;
   }
 
+  getSecondsFromString( durr:string ) : Number {
+    let secs = 0;
+    let parts = durr.match(/(\d*\D*)/g);
+
+    _.each(parts, p => {
+      if(p.length >1) {
+        let idx = p.length-1;
+        let unit = p[idx];
+        let mag = 1;
+        if(unit=='s') {
+          // could be 39µs
+          if(p[p.length - 2] == 'µ') {
+            mag = 0.001;
+            idx -= 1;
+          }
+        }
+        else if(unit=='m') {
+          mag = 60;
+        }
+        else if(unit=='h') {
+          mag = 60*60;
+        }
+        secs += (parseInt( p.substring(0,idx)) * mag); 
+      }
+    });
+    return secs;
+  }
+
   private updateShowQueries() {
     // Cancel any pending calls
     this.$timeout.cancel( this.queryRefresh );
@@ -167,30 +195,23 @@ class InfluxAdminCtrl extends PanelCtrl {
         _.forEach(data.results[0].series[0].values, (res) => {
 
           // convert the time (string) to seconds (so that sort works!)
-          let durr = res[3];
-          let unit = durr[durr.length - 1];
-          let mag = 0;
-          if(unit=='s') {
-            mag = 1;
-          }
-          else if(unit=='m') {
-            mag = 60;
-          }
-          else if(unit=='h') {
-            mag = 60*60;
-          }
-          let secs = parseInt( durr.substring(0,durr.length-1)) * mag;
+          let secs = this.getSecondsFromString(res[3]);
           if('SHOW QUERIES' == res[1]) {
             // Don't include the current query
             this.queryInfo.lastId = res[0];
           }
           else {
+            var status = "";
+            if(res.length>3 && res[4] !== 'running') {
+              status = res[4];
+            };
             temp.push( {
-              'secs': secs,
-              'time': res[3],
-              'query': res[1],
-              'db': res[2],
-              'id': res[0]
+              secs: secs,
+              time: res[3],
+              query: res[1],
+              db: res[2],
+              id: res[0],
+              status: status
             });
           }
         });

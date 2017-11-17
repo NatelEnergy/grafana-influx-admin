@@ -138,6 +138,32 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     });
                     return;
                 };
+                InfluxAdminCtrl.prototype.getSecondsFromString = function (durr) {
+                    var secs = 0;
+                    var parts = durr.match(/(\d*\D*)/g);
+                    lodash_1.default.each(parts, function (p) {
+                        if (p.length > 1) {
+                            var idx = p.length - 1;
+                            var unit = p[idx];
+                            var mag = 1;
+                            if (unit == 's') {
+                                // could be 39µs
+                                if (p[p.length - 2] == 'µ') {
+                                    mag = 0.001;
+                                    idx -= 1;
+                                }
+                            }
+                            else if (unit == 'm') {
+                                mag = 60;
+                            }
+                            else if (unit == 'h') {
+                                mag = 60 * 60;
+                            }
+                            secs += (parseInt(p.substring(0, idx)) * mag);
+                        }
+                    });
+                    return secs;
+                };
                 InfluxAdminCtrl.prototype.updateShowQueries = function () {
                     var _this = this;
                     // Cancel any pending calls
@@ -153,30 +179,24 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             var temp = [];
                             lodash_1.default.forEach(data.results[0].series[0].values, function (res) {
                                 // convert the time (string) to seconds (so that sort works!)
-                                var durr = res[3];
-                                var unit = durr[durr.length - 1];
-                                var mag = 0;
-                                if (unit == 's') {
-                                    mag = 1;
-                                }
-                                else if (unit == 'm') {
-                                    mag = 60;
-                                }
-                                else if (unit == 'h') {
-                                    mag = 60 * 60;
-                                }
-                                var secs = parseInt(durr.substring(0, durr.length - 1)) * mag;
+                                var secs = _this.getSecondsFromString(res[3]);
                                 if ('SHOW QUERIES' == res[1]) {
                                     // Don't include the current query
                                     _this.queryInfo.lastId = res[0];
                                 }
                                 else {
+                                    var status = "";
+                                    if (res.length > 3 && res[4] !== 'running') {
+                                        status = res[4];
+                                    }
+                                    ;
                                     temp.push({
-                                        'secs': secs,
-                                        'time': res[3],
-                                        'query': res[1],
-                                        'db': res[2],
-                                        'id': res[0]
+                                        secs: secs,
+                                        time: res[3],
+                                        query: res[1],
+                                        db: res[2],
+                                        id: res[0],
+                                        status: status
                                     });
                                 }
                             });
