@@ -1,40 +1,43 @@
 
   <div ng-show="ctrl.isShowCurrentQueries()">
+    <div ng-show="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
+      <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
+    </div>
 
-      <div class="search-results-container" ng-style="{height: ctrl.height, padding:'0px'}">
-        <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
-          ng-click="ctrl.askToKillQuery( qinfo )"
-          class="search-item pointer"
-          title="Kill Query"
-          href="#">
-          <span class="search-result-tags">
-            &nbsp;&nbsp;<i class="fa fa-ban"></i>
-          </span>
-          <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136); margin-right:5px;">
-            {{ qinfo.time }}
-          </span>
-          <span class="label label-tag" ng-show="qinfo.status.length > 0" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136); margin-right:5px;">
-            {{ qinfo.status }}
-          </span>
-          <span class="label label-tag" ng-show="qinfo.db.length > 0" style="background-color: rgb(153, 68, 10); border-color: rgb(191, 106, 48); margin-right:5px;">
-            {{ qinfo.db }}
-          </span>
-          <span class="search-result-link">
-            {{ qinfo.query }}
-          </span>
-        </a>
+    <div class="search-results-container" ng-style="{height: ctrl.height, padding:'0px'}">
+      <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
+        ng-click="ctrl.askToKillQuery( qinfo )"
+        class="search-item pointer"
+        title="Kill Query"
+        href="#">
+        <span class="search-result-tags">
+          &nbsp;&nbsp;<i class="fa fa-ban"></i>
+        </span>
+        <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136); margin-right:5px;">
+          {{ qinfo.time }}
+        </span>
+        <span class="label label-tag" ng-show="qinfo.status.length > 0" style="background-color: rgb(137, 15, 2); border-color: rgb(175, 53, 40); margin-right:5px;">
+          {{ qinfo.status }}
+        </span>
+        <span class="label label-tag" ng-show="qinfo.db.length > 0" style="background-color: rgb(117, 117, 117); border-color: rgb(155, 155, 155); margin-right:5px;">
+          {{ qinfo.db }}
+        </span>
+        <span class="search-result-link">
+          {{ qinfo.query }}
+        </span>
+      </a>
 
-        <div ng-hide="ctrl.queryInfo.queries.length > 0" href="#" class="search-item" >
-          No Queries Running
-          <span class="search-result-tags">
-            {{ ctrl.queryInfo.count }} &nbsp;
-            <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
-              @ {{ ctrl.queryInfo.last.format( 'h:mm:ss a' ) }}
-            </span>
+      <div ng-hide="ctrl.queryInfo.queries.length > 0" href="#" class="search-item" >
+        No Queries Running
+        <span class="search-result-tags">
+          {{ ctrl.queryInfo.count }} &nbsp;
+          <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136);">
+            @ {{ ctrl.queryInfo.last.format( 'h:mm:ss a' ) }}
           </span>
-        </div>
-
+        </span>
       </div>
+
+    </div>
 
   </div>
   <div ng-show="ctrl.isShowQueryWindow()">

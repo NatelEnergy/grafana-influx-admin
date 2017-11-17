@@ -190,17 +190,18 @@ class InfluxAdminCtrl extends PanelCtrl {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
       this.loading = true;
+      this.error = null;
+      
       ds._seriesQuery( 'SHOW QUERIES', this.panel.options ).then( (data) => {
         var temp = [];
-        _.forEach(data.results[0].series[0].values, (res) => {
-
-          // convert the time (string) to seconds (so that sort works!)
-          let secs = this.getSecondsFromString(res[3]);
-          if('SHOW QUERIES' == res[1]) {
-            // Don't include the current query
-            this.queryInfo.lastId = res[0];
-          }
-          else {
+        let values = data.results[0].series[0].values;
+        if(values.length == 1 && values.length[0][1] === 'SHOW QUERIES') {
+          // this is the query we sent!
+        }
+        else {
+          _.forEach(values, (res) => {
+            // convert the time (string) to seconds (so that sort works!)
+            let secs = this.getSecondsFromString(res[3]);
             var status = "";
             if(res.length>3 && res[4] !== 'running') {
               status = res[4];
@@ -213,8 +214,8 @@ class InfluxAdminCtrl extends PanelCtrl {
               id: res[0],
               status: status
             });
-          }
-        });
+          });
+        }
 
         this.queryInfo.count++;
         this.queryInfo.last = moment( Date.now() );
@@ -231,6 +232,16 @@ class InfluxAdminCtrl extends PanelCtrl {
       }).catch( (err) => {
         console.log( "Show Query Error: ", err );
         this.loading = false;
+        if(err.data) {
+          this.error = err.data.message;
+          this.inspector = {error: err};
+        }
+        else if(err.message) {
+          this.error = err.message;
+        }
+        else {
+          this.error = err;
+        }
       });
     });
   }

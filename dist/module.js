@@ -175,16 +175,16 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         _this.ds = ds;
                         _this.loading = true;
+                        _this.error = null;
                         ds._seriesQuery('SHOW QUERIES', _this.panel.options).then(function (data) {
                             var temp = [];
-                            lodash_1.default.forEach(data.results[0].series[0].values, function (res) {
-                                // convert the time (string) to seconds (so that sort works!)
-                                var secs = _this.getSecondsFromString(res[3]);
-                                if ('SHOW QUERIES' == res[1]) {
-                                    // Don't include the current query
-                                    _this.queryInfo.lastId = res[0];
-                                }
-                                else {
+                            var values = data.results[0].series[0].values;
+                            if (values.length == 1 && values.length[0][1] === 'SHOW QUERIES') {
+                            }
+                            else {
+                                lodash_1.default.forEach(values, function (res) {
+                                    // convert the time (string) to seconds (so that sort works!)
+                                    var secs = _this.getSecondsFromString(res[3]);
                                     var status = "";
                                     if (res.length > 3 && res[4] !== 'running') {
                                         status = res[4];
@@ -198,8 +198,8 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                                         id: res[0],
                                         status: status
                                     });
-                                }
-                            });
+                                });
+                            }
                             _this.queryInfo.count++;
                             _this.queryInfo.last = moment_1.default(Date.now());
                             _this.queryInfo.queries = temp;
@@ -214,6 +214,16 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         }).catch(function (err) {
                             console.log("Show Query Error: ", err);
                             _this.loading = false;
+                            if (err.data) {
+                                _this.error = err.data.message;
+                                _this.inspector = { error: err };
+                            }
+                            else if (err.message) {
+                                _this.error = err.message;
+                            }
+                            else {
+                                _this.error = err;
+                            }
                         });
                     });
                 };
