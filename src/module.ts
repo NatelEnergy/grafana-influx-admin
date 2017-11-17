@@ -76,9 +76,9 @@ class InfluxAdminCtrl extends PanelCtrl {
         this.panel.datasource = this.dbs[0];
       }
     }
-    var txt = this.panel.datasource;
+    var txt = this.panel.database;
     if(_.isNil( txt )) {
-      txt = 'default';
+      txt = '(default)';
     }
     this.dbSeg = this.uiSegmentSrv.newSegment(txt);
     this.queryInfo = {
@@ -249,13 +249,13 @@ class InfluxAdminCtrl extends PanelCtrl {
   dbChanged() {
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
-      console.log( "DB Changed", this.dbSeg );
+      //console.log( "DB Changed", this.dbSeg, ds );
       let db = this.dbSeg.value;
-      if(db === ds.database || db === "default") {
-        this.panel.options.database = null;
+      if(db === ds.database || db.startsWith( "(" ) ) {
+        this.panel.database = null;
       }
       else {
-        this.panel.options.database = db;
+        this.panel.database = db;
       }
       this.configChanged();
     });
@@ -274,7 +274,7 @@ class InfluxAdminCtrl extends PanelCtrl {
   getDBsegs() {
     return this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       return ds.metricFindQuery( "SHOW DATABASES" ).then((data) => {
-        var segs = [];
+        var segs = [ this.uiSegmentSrv.newSegment( '('+ds.database+')' ) ];
         _.forEach(data, (val) => {
           segs.push( this.uiSegmentSrv.newSegment( val.text ) );
         });
@@ -456,7 +456,6 @@ class InfluxAdminCtrl extends PanelCtrl {
         }
 
         //console.log('Finished processing', Date.now());
-
 
       }).catch( (err) => {
         this.loading = false;

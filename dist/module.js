@@ -68,9 +68,9 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             this.panel.datasource = this.dbs[0];
                         }
                     }
-                    var txt = this.panel.datasource;
+                    var txt = this.panel.database;
                     if (lodash_1.default.isNil(txt)) {
-                        txt = 'default';
+                        txt = '(default)';
                     }
                     this.dbSeg = this.uiSegmentSrv.newSegment(txt);
                     this.queryInfo = {
@@ -231,13 +231,13 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     var _this = this;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         _this.ds = ds;
-                        console.log("DB Changed", _this.dbSeg);
+                        //console.log( "DB Changed", this.dbSeg, ds );
                         var db = _this.dbSeg.value;
-                        if (db === ds.database || db === "default") {
-                            _this.panel.options.database = null;
+                        if (db === ds.database || db.startsWith("(")) {
+                            _this.panel.database = null;
                         }
                         else {
-                            _this.panel.options.database = db;
+                            _this.panel.database = db;
                         }
                         _this.configChanged();
                     });
@@ -255,7 +255,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     var _this = this;
                     return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         return ds.metricFindQuery("SHOW DATABASES").then(function (data) {
-                            var segs = [];
+                            var segs = [_this.uiSegmentSrv.newSegment('(' + ds.database + ')')];
                             lodash_1.default.forEach(data, function (val) {
                                 segs.push(_this.uiSegmentSrv.newSegment(val.text));
                             });
