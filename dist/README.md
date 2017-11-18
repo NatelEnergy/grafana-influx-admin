@@ -28,6 +28,9 @@ grunt
 
 #### Changelog
 
+##### v0.0.5 (not released yet)
+- Adding more debug query templates
+
 
 ##### v0.0.4
 
