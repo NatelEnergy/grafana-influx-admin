@@ -29,9 +29,9 @@ grunt
 #### Changelog
 
 ##### v0.0.5 (not released yet)
-- Adding more debug query templates
-- support $timeFilter in query
-
+- Now supports $timeFilter in query
+- Now supports datasource defined as a template variable 
+- Added more debug query templates
 
 
 ##### v0.0.4

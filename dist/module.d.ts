@@ -6,7 +6,6 @@ declare class InfluxAdminCtrl extends MetricsPanelCtrl {
     static templateUrl: string;
     writing: boolean;
     history: Array<any>;
-    dbs: Array<string>;
     dbSeg: any;
     ds: any;
     queryInfo: any;
@@ -23,10 +22,10 @@ declare class InfluxAdminCtrl extends MetricsPanelCtrl {
         time: string;
         refresh: boolean;
         refreshInterval: number;
-        scopedVars: {};
     };
     /** @ngInject **/
     constructor($scope: any, $injector: any, $http: any, uiSegmentSrv: any);
+    onPanelInitalized(): void;
     isShowQueryWindow(): boolean;
     isShowCurrentQueries(): boolean;
     issueQueries(datasource: any): any;
@@ -35,10 +34,14 @@ declare class InfluxAdminCtrl extends MetricsPanelCtrl {
     writeData(): any;
     askToKillQuery(qinfo: any): void;
     getSecondsFromString(durr: string): Number;
+    private setErrorIfInvalid(ds);
     private updateShowQueries();
     dbChanged(): void;
     configChanged(): void;
-    getDBsegs(): any;
+    private initEditorDS();
+    private getDatasources();
+    private datasourceChanged(opt);
+    private getDBsegs();
     getQueryHistory(): any[];
     commonQueries: {
         cPd: string;

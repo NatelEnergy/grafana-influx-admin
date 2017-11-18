@@ -1,17 +1,14 @@
 ///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
-System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'lodash', 'moment'], function(exports_1) {
+System.register(['app/core/app_events', 'app/plugins/sdk', 'lodash', 'moment'], function(exports_1) {
     var __extends = (this && this.__extends) || function (d, b) {
         for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
         function __() { this.constructor = d; }
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
-    var config_1, app_events_1, sdk_1, lodash_1, moment_1;
+    var app_events_1, sdk_1, lodash_1, moment_1;
     var InfluxAdminCtrl;
     return {
         setters:[
-            function (config_1_1) {
-                config_1 = config_1_1;
-            },
             function (app_events_1_1) {
                 app_events_1 = app_events_1_1;
             },
@@ -29,7 +26,6 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 __extends(InfluxAdminCtrl, _super);
                 /** @ngInject **/
                 function InfluxAdminCtrl($scope, $injector, $http, uiSegmentSrv) {
-                    var _this = this;
                     _super.call(this, $scope, $injector);
                     this.$http = $http;
                     this.uiSegmentSrv = uiSegmentSrv;
@@ -39,8 +35,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         database: null,
                         time: 'YYYY-MM-DDTHH:mm:ssZ',
                         refresh: false,
-                        refreshInterval: 1200,
-                        scopedVars: {} // needed for timeFilter
+                        refreshInterval: 1200
                     };
                     this.commonQueries = {
                         cPd: 'SELECT numSeries FROM "_internal".."database" WHERE time > now() - 10s GROUP BY "database" ORDER BY desc LIMIT 1',
@@ -49,28 +44,11 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         createadmin: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\' WITH ALL PRIVILEGES',
                     };
                     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
+                    this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
                     this.writing = false;
                     this.history = [];
                     // defaults configs
                     lodash_1.default.defaultsDeep(this.panel, this.defaults);
-                    // All influxdb datasources
-                    this.dbs = [];
-                    lodash_1.default.forEach(config_1.default.datasources, function (val, key) {
-                        if ("influxdb" == val.type) {
-                            if (key == config_1.default.defaultDatasource) {
-                                _this.dbs.unshift(key);
-                            }
-                            else {
-                                _this.dbs.push(key);
-                            }
-                        }
-                    });
-                    // pick a datasource
-                    if (lodash_1.default.isNil(this.panel.datasource)) {
-                        if (this.dbs.length > 0) {
-                            this.panel.datasource = this.dbs[0];
-                        }
-                    }
                     var txt = this.panel.database;
                     if (lodash_1.default.isNil(txt)) {
                         txt = '(default)';
@@ -82,6 +60,16 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         queries: []
                     };
                 }
+                InfluxAdminCtrl.prototype.onPanelInitalized = function () {
+                    var _this = this;
+                    if (lodash_1.default.isNil(this.panel.datasource)) {
+                        this.getDatasources().then(function (dss) {
+                            if (lodash_1.default.size(dss) > 0) {
+                                _this.datasourceChanged(dss[0]);
+                            }
+                        });
+                    }
+                };
                 InfluxAdminCtrl.prototype.isShowQueryWindow = function () {
                     return this.panel.mode == 'query';
                 };
@@ -103,7 +91,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 };
                 // Overrides the default handling
                 InfluxAdminCtrl.prototype.handleQueryResult = function (result) {
-                    console.log('handleQueryResult', result);
+                    // ignore the nullconsole.log('handleQueryResult', result);
                 };
                 InfluxAdminCtrl.prototype.onInitEditMode = function () {
                     this.editorTabs.splice(1, 1); // remove the 'Metrics Tab'
@@ -185,6 +173,23 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     });
                     return secs;
                 };
+                InfluxAdminCtrl.prototype.setErrorIfInvalid = function (ds) {
+                    if (ds == null) {
+                        if (lodash_1.default.isNil(this.panel.datasource)) {
+                            this.reportError("ds", "No datasource configured");
+                        }
+                        else {
+                            this.reportError("ds", "Can not find datasource: " + this.panel.datasource);
+                        }
+                        return true;
+                    }
+                    if ("influxdb" === ds.type) {
+                        return false;
+                    }
+                    this.reportError("ds", "Configure an influx database: " + ds.name + " / " + ds.type);
+                    console.log("Invalid Datasource", ds);
+                    return true;
+                };
                 InfluxAdminCtrl.prototype.updateShowQueries = function () {
                     var _this = this;
                     // Cancel any pending calls
@@ -195,6 +200,9 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     }
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         _this.ds = ds;
+                        if (_this.setErrorIfInvalid(ds)) {
+                            return;
+                        }
                         _this.loading = true;
                         _this.error = null;
                         ds._seriesQuery('SHOW QUERIES', _this.panel.options).then(function (data) {
@@ -233,18 +241,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                                 }, _this.panel.refreshInterval);
                             }
                         }).catch(function (err) {
-                            console.log("Show Query Error: ", err);
-                            _this.loading = false;
-                            if (err.data) {
-                                _this.error = err.data.message;
-                                _this.inspector = { error: err };
-                            }
-                            else if (err.message) {
-                                _this.error = err.message;
-                            }
-                            else {
-                                _this.error = err;
-                            }
+                            _this.reportError('Show Queries', err);
                         });
                     });
                 };
@@ -271,6 +268,34 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     else {
                         this.onQueryChanged();
                     }
+                };
+                // This seems to be required to get the dropdown to be properly initalized
+                InfluxAdminCtrl.prototype.initEditorDS = function () {
+                    var _this = this;
+                    this.getDatasources().then(function (dss) {
+                        lodash_1.default.forEach(dss, function (ds) {
+                            if (ds.name == _this.panel.datasource) {
+                                _this.datasourceChanged(ds);
+                                return false;
+                            }
+                        });
+                    });
+                };
+                // Return only the influx databases.  Even the ones from template varables
+                InfluxAdminCtrl.prototype.getDatasources = function () {
+                    return Promise.resolve(this.datasourceSrv.getMetricSources().filter(function (value) {
+                        if (value.meta.baseUrl.endsWith("/influxdb")) {
+                            return true;
+                        }
+                        return false;
+                    }).map(function (ds) {
+                        return { value: ds.value, text: ds.name, datasource: ds };
+                    }));
+                };
+                InfluxAdminCtrl.prototype.datasourceChanged = function (opt) {
+                    console.log("Set Datasource: ", opt);
+                    this.panel.datasource = opt.value;
+                    this.setDatasource(opt.datasource);
                 };
                 InfluxAdminCtrl.prototype.getDBsegs = function () {
                     var _this = this;
@@ -389,9 +414,16 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     this.clickableQuery = false;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         _this.ds = ds;
+                        if (_this.setErrorIfInvalid(ds)) {
+                            return;
+                        }
                         var timeFilter = ds.getTimeFilter({ rangeRaw: _this.range.raw });
-                        _this.panel.scopedVars.timeFilter = { value: timeFilter };
-                        _this.q = _this.templateSrv.replace(q, _this.panel.scopedVars);
+                        var scopedVars = _this.panel.scopedVars;
+                        if (!scopedVars) {
+                            scopedVars = {};
+                        }
+                        scopedVars.timeFilter = { value: timeFilter };
+                        _this.q = _this.templateSrv.replace(q, scopedVars);
                         var opts = {};
                         if (ds.allowDatabaseQuery && _this.panel.queryDB && _this.panel.database) {
                             opts.database = _this.panel.database;

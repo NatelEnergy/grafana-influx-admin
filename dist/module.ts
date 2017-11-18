@@ -14,7 +14,6 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
   writing: boolean;
   history: Array<any>;
-  dbs: Array<string>;
   dbSeg: any;
   ds: any;
 
@@ -37,8 +36,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     database: null,
     time: 'YYYY-MM-DDTHH:mm:ssZ',
     refresh: false,
-    refreshInterval: 1200,
-    scopedVars: {} // needed for timeFilter
+    refreshInterval: 1200
   };
 
   /** @ngInject **/
@@ -46,6 +44,8 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     super($scope, $injector);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
+    this.events.on('panel-initialized', this.onPanelInitalized.bind(this));
+
     this.writing = false;
     this.history = [  ];
 
@@ -53,26 +53,6 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     // defaults configs
     _.defaultsDeep(this.panel, this.defaults);
 
-
-    // All influxdb datasources
-    this.dbs = [];
-    _.forEach(config.datasources, (val, key) => {
-      if ("influxdb" == val.type) {
-        if(key == config.defaultDatasource) {
-          this.dbs.unshift(key);
-        }
-        else {
-          this.dbs.push(key);
-        }
-      }
-    });
-
-    // pick a datasource
-    if( _.isNil( this.panel.datasource ) ) {
-      if(this.dbs.length > 0) {
-        this.panel.datasource = this.dbs[0];
-      }
-    }
     var txt = this.panel.database;
     if(_.isNil( txt )) {
       txt = '(default)';
@@ -83,6 +63,16 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       count: 0,
       queries: []
     };
+  }
+
+  onPanelInitalized() {
+    if( _.isNil( this.panel.datasource ) ) {
+      this.getDatasources().then( dss => {
+        if(_.size(dss) > 0) {
+          this.datasourceChanged( dss[0] );
+        }
+      });
+    }
   }
 
 
@@ -112,12 +102,11 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
   // Overrides the default handling
   handleQueryResult(result) {
-    console.log('handleQueryResult', result);
+    // ignore the nullconsole.log('handleQueryResult', result);
   }
 
   onInitEditMode() {
     this.editorTabs.splice(1,1); // remove the 'Metrics Tab'
-
     this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/partials/editor.html',1);
     this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/partials/write.html',2);
     this.editorTabIndex = 1;
@@ -199,6 +188,25 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     return secs;
   }
 
+  private setErrorIfInvalid( ds ) : boolean {
+    if( ds == null) {
+      if(_.isNil(this.panel.datasource)) {
+        this.reportError( "ds", "No datasource configured" );
+      }
+      else {
+        this.reportError( "ds", "Can not find datasource: "+this.panel.datasource );
+      }
+      return true;
+    }
+    if( "influxdb" === ds.type ) {
+      return false;
+    }
+    this.reportError( "ds", "Configure an influx database: "+ ds.name + " / " + ds.type );
+    console.log( "Invalid Datasource", ds );
+    return true;
+  }
+
+
   private updateShowQueries() {
     // Cancel any pending calls
     this.$timeout.cancel( this.queryRefresh );
@@ -209,6 +217,10 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
+      if(this.setErrorIfInvalid(ds)) {
+        return;
+      }
+
       this.loading = true;
       this.error = null;
 
@@ -250,18 +262,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           }, this.panel.refreshInterval);
         }
       }).catch( (err) => {
-        console.log( "Show Query Error: ", err );
-        this.loading = false;
-        if(err.data) {
-          this.error = err.data.message;
-          this.inspector = {error: err};
-        }
-        else if(err.message) {
-          this.error = err.message;
-        }
-        else {
-          this.error = err;
-        }
+        this.reportError( 'Show Queries', err);
       });
     });
   }
@@ -291,7 +292,37 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     }
   }
 
-  getDBsegs() {
+  // This seems to be required to get the dropdown to be properly initalized
+  private initEditorDS() {
+    this.getDatasources().then( dss => {
+      _.forEach( dss, ds => {
+        if(ds.name == this.panel.datasource) {
+          this.datasourceChanged( ds );
+          return false;
+        }
+      });
+    });
+  }
+
+  // Return only the influx databases.  Even the ones from template varables
+  private getDatasources() {
+    return Promise.resolve(this.datasourceSrv.getMetricSources().filter(value => {
+      if(value.meta.baseUrl.endsWith("/influxdb")) {
+        return true;
+      }
+      return false;
+    }).map(ds => {
+      return {value: ds.value, text: ds.name, datasource: ds};
+    }));
+  }
+
+  private datasourceChanged(opt) {
+    console.log( "Set Datasource: ", opt );
+    this.panel.datasource = opt.value;
+    this.setDatasource( opt.datasource );
+  }
+
+  private getDBsegs() {
     return this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       return ds.metricFindQuery( "SHOW DATABASES" ).then((data) => {
         var segs = [ this.uiSegmentSrv.newSegment( '('+ds.database+')' ) ];
@@ -424,10 +455,18 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     this.clickableQuery = false;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
+      if(this.setErrorIfInvalid(ds)) {
+        return;
+      }
 
       let timeFilter = ds.getTimeFilter({ rangeRaw: this.range.raw });
-      this.panel.scopedVars.timeFilter = {value: timeFilter};
-      this.q = this.templateSrv.replace(q, this.panel.scopedVars);
+      let scopedVars = this.panel.scopedVars;
+      if( !scopedVars ) {
+        scopedVars = {};
+      }
+      scopedVars.timeFilter = {value: timeFilter};
+
+      this.q = this.templateSrv.replace(q, scopedVars);
 
       var opts: any = {};
       if( ds.allowDatabaseQuery && this.panel.queryDB && this.panel.database ) {

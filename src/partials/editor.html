@@ -1,26 +1,15 @@
-<div class="editor-row">
 
+<div class="gf-form-inline">
   <div class="gf-form">
-    <span class="gf-form-label width-8">InfluxDB</span>
-    <div class="gf-form-select-wrapper max-width-23">
-      <select class="gf-form-input"
-        ng-options="ds for ds in ctrl.dbs"
-        ng-model="ctrl.panel.datasource"
-        ng-change="ctrl.configChanged()">
-      </select>
-    </div>
+    <label class="gf-form-label">InfluxDB</label>
 
-    <metric-segment
-      ng-show="ctrl.ds.allowDatabaseQuery"
-      segment="ctrl.dbSeg"
-      get-options="ctrl.getDBsegs()"
-      on-change="ctrl.dbChanged()"></metric-segment>
+    <gf-form-dropdown model="ctrl.panel.datasource" css-class="gf-size-auto"
+                      lookup-text="true"
+                      get-options="ctrl.getDatasources()"
+                      on-change="ctrl.datasourceChanged($option)">
+    </gf-form-dropdown>
 
-    &nbsp;&nbsp; {{ ctrl.ds.database }}
-  </div>
-
-  <div class="gf-form">
-    <span class="gf-form-label width-8">Show</span>
+    <span class="gf-form-label">Mode</span>
     <div class="gf-form-select-wrapper max-width-23">
       <select class="gf-form-input" ng-model="ctrl.panel.mode" ng-change="ctrl.configChanged()">
         <option value="current">Current Queries</option>
@@ -29,46 +18,85 @@
     </div>
   </div>
 
-  <div class="gf-form" ng-show="ctrl.panel.mode == 'current'">
-    <gf-form-switch class="gf-form-inline"
-      label="Refresh"
-      label-class="gf-form-label width-8"
-      checked="ctrl.panel.refresh"
-      on-change="ctrl.configChanged()"></gf-form-switch>
-      <span ng-show="ctrl.panel.refresh" class="gf-form-label width-8">Interval (ms)</span>
-      <input ng-show="ctrl.panel.refresh" type="number"
-       min="0" max="100000" 
-       ng-model="ctrl.panel.refreshInterval" 
-       class="gf-form-input max-width-10" 
-       ng-change="ctrl.configChanged()" />
+  <div class="gf-form gf-form--grow">
+    <label class="gf-form-label gf-form-label--grow"></label>
   </div>
 
-  <div class="gf-form" ng-show="ctrl.panel.mode == 'query' && ctrl.ds.allowDatabaseQuery">
-    <gf-form-switch class="gf-form"
+  <!--
+  <div class="gf-form" ng-if="ctrl.queryOptions">
+    <a class="gf-form-label" ng-click="ctrl.toggleOptions()">
+      <i class="fa fa-fw fa-caret-right" ng-hide="ctrl.optionsOpen"></i><i class="fa fa-fw fa-caret-down" ng-show="ctrl.optionsOpen"></i>Options
+    </a>
+  </div>
+  <div class="gf-form" ng-if="ctrl.hasQueryHelp">
+    <button class="gf-form-label" ng-click="ctrl.toggleHelp()">
+      <i class="fa fa-fw fa-caret-right" ng-hide="ctrl.helpOpen"></i><i class="fa fa-fw fa-caret-down" ng-show="ctrl.helpOpen"></i>Help
+    </button>
+  </div>
+  <div class="gf-form">
+    <button class="gf-form-label" ng-click="ctrl.toggleQueryTroubleshooter()" bs-tooltip="'Display query request & response'">
+      <i class="fa fa-fw fa-caret-right" ng-hide="ctrl.queryTroubleshooterOpen"></i><i class="fa fa-fw fa-caret-down" ng-show="ctrl.queryTroubleshooterOpen"></i>Query Inspector
+    </button>
+  </div>
+-->
+</div>
+
+<br/><br/>
+
+
+<!--
+  -- Query Window
+  -->
+<div class="editor-row" ng-show="ctrl.isShowQueryWindow()">
+  <div class="section gf-form-group">
+    <h5 class="section-heading">Query Window</h5>
+    <div class="gf-form" ng-show="ctrl.ds.allowDatabaseQuery">
+      <span class="gf-form-label width-8">Database:</span>
+      <metric-segment
+        segment="ctrl.dbSeg"
+        get-options="ctrl.getDBsegs()"
+        on-change="ctrl.dbChanged()"></metric-segment>
+
+      &nbsp;&nbsp; {{ ctrl.ds.database }}
+    </div>
+
+    <gf-form-switch  ng-show="ctrl.ds.allowDatabaseQuery"
+      class="gf-form"
       label="Show DB"
       label-class="gf-form-label width-8"
       checked="ctrl.panel.queryDB"
       on-change="ctrl.configChanged()"></gf-form-switch>
-  </div>
 
-  <div class="gf-form" ng-show="ctrl.panel.mode == 'query'">
-    <span class="gf-form-label width-8">Time Format</span>
-    <input type="text"
-      class="gf-form-input max-width-16"
-      ng-model="ctrl.panel.time"
-      ng-change="ctrl.onQueryChanged()">
-    &nbsp; <a href="https://momentjs.com/docs/#/displaying/format/"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+    <div class="gf-form">
+      <span class="gf-form-label width-8">Time Format</span>
+      <input type="text"
+        class="gf-form-input width-16"
+        ng-model="ctrl.panel.time"
+        ng-change="ctrl.onQueryChanged()" />
+      &nbsp; <a href="https://momentjs.com/docs/#/displaying/format/" target="_blank"><i class="fa fa-question-circle" aria-hidden="true"></i></a>
+    </div>
+
   </div>
+</div>
+
 
 <!--
-  <div class="gf-form" ng-show="ctrl.panel.mode == 'current'">
-    <span class="gf-form-label width-7">Refresh</span>
-    input....
-  </div>
-
-  <pre>
-  {{ ctrl.panel | json }}
-  </pre>
--->
-
+  -- SHOW QUERIES
+  -->
+<div class="editor-row" ng-show="ctrl.isShowCurrentQueries()">
+    <h5 class="section-heading">Current Queries</h5>
+    <div class="gf-form-inline">
+      <gf-form-switch class="gf-form"
+        label="Auto Refresh"
+        label-class="gf-form-label width-8"
+        checked="ctrl.panel.refresh"
+        on-change="ctrl.configChanged()"></gf-form-switch>
+      <span class="gf-form-label width-8" ng-show="ctrl.panel.refresh">Interval (ms)</span> 
+      <input  ng-show="ctrl.panel.refresh"
+        type="number" min="0" max="100000" 
+        ng-model="ctrl.panel.refreshInterval" 
+        class="gf-form-input max-width-10" 
+        ng-change="ctrl.configChanged()" />
+    </div>
 </div>
+
