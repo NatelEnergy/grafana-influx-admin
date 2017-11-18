@@ -3,13 +3,13 @@
 import config from 'app/core/config';
 import appEvents from 'app/core/app_events';
 
-import {PanelCtrl} from  'app/plugins/sdk';
+import {MetricsPanelCtrl} from  'app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
 
 
-class InfluxAdminCtrl extends PanelCtrl {
+class InfluxAdminCtrl extends MetricsPanelCtrl {
   static templateUrl = 'partials/module.html';
 
   writing: boolean;
@@ -21,8 +21,6 @@ class InfluxAdminCtrl extends PanelCtrl {
   // The running Queries
   queryInfo: any;
   queryRefresh: any; // $timeout promice
-
-  loading: boolean = false; // should be in base PanelCtrl???
 
   // Helpers for the html
   clickableQuery: boolean;
@@ -39,16 +37,15 @@ class InfluxAdminCtrl extends PanelCtrl {
     database: null,
     time: 'YYYY-MM-DDTHH:mm:ssZ',
     refresh: false,
-    refreshInterval: 1200
+    refreshInterval: 1200,
+    scopedVars: {} // needed for timeFilter
   };
 
   /** @ngInject **/
-  constructor($scope, $injector, private templateSrv, private $http, private uiSegmentSrv, private datasourceSrv) {
+  constructor($scope, $injector, private $http, private uiSegmentSrv) {
     super($scope, $injector);
 
     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
-    this.events.on('refresh', this.onRefresh.bind(this));
-
     this.writing = false;
     this.history = [  ];
 
@@ -97,7 +94,30 @@ class InfluxAdminCtrl extends PanelCtrl {
     return this.panel.mode == 'current';
   }
 
+  // This gets called at each 'refresh'
+  issueQueries(datasource) {
+
+    if( this.isShowCurrentQueries() ) {
+      this.updateShowQueries();
+    }
+    else {
+      if(!this.isPostQuery()) {
+        this.doSubmit();
+      }
+    }
+
+    // Return empty results
+    return null; //this.$q.when( [] );
+  }
+
+  // Overrides the default handling
+  handleQueryResult(result) {
+    console.log('handleQueryResult', result);
+  }
+
   onInitEditMode() {
+    this.editorTabs.splice(1,1); // remove the 'Metrics Tab'
+
     this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/partials/editor.html',1);
     this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/partials/write.html',2);
     this.editorTabIndex = 1;
@@ -362,7 +382,7 @@ class InfluxAdminCtrl extends PanelCtrl {
     }
     else if( this.panel.query.startsWith( 'SHOW FIELD KEYS FROM "')) {
       var str = this.panel.query.split(/"/)[1];
-      this.setQuery( 'SELECT "' + res +'" FROM "' + str +'" ORDER BY time desc LIMIT 10' );
+      this.setQuery( 'SELECT "' + res +'" FROM "' + str +'" WHERE $timeFilter LIMIT 10' );
     }
     return;
   }
@@ -398,14 +418,16 @@ class InfluxAdminCtrl extends PanelCtrl {
       this.history.pop();
     }
 
-    this.q = this.templateSrv.replace(q, this.panel.scopedVars);
-
     var startTime = Date.now();
     this.error = null;
     this.inspector = null;
     this.clickableQuery = false;
     this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       this.ds = ds;
+
+      let timeFilter = ds.getTimeFilter({ rangeRaw: this.range.raw });
+      this.panel.scopedVars.timeFilter = {value: timeFilter};
+      this.q = this.templateSrv.replace(q, this.panel.scopedVars);
 
       var opts: any = {};
       if( ds.allowDatabaseQuery && this.panel.queryDB && this.panel.database ) {
@@ -420,7 +442,6 @@ class InfluxAdminCtrl extends PanelCtrl {
       this.rspInfo = "...";
 
       ds._seriesQuery( this.q, opts ).then( (data) => {
-
         this.loading = false;
         this.clickableQuery = this.isClickableQuery();
         var rowCount = 0;
@@ -464,40 +485,32 @@ class InfluxAdminCtrl extends PanelCtrl {
         else {
           this.rspInfo = "No Results in " +queryTime+"s";
         }
-
-        //console.log('Finished processing', Date.now());
-
       }).catch( (err) => {
-        this.loading = false;
-        this.clickableQuery = false;
-        if(err.data) {
-          this.error = err.data.message;
-          this.inspector = {error: err};
-          this.rsp = err.data;
-        }
-        else if(err.message) {
-          this.error = err.message;
-        }
-        else {
-          this.error = err;
-        }
-
-
         var queryTime = (Date.now() - startTime) / 1000.0;
-        this.rspInfo = 'Error in '+queryTime + 's';
-        console.log( 'doSubmit error', err, this );
+        this.rspInfo = 'Query in '+queryTime + 's';
+        this.reportError("ds._seriesQuery", err);
       });
+    }).catch( (err) => {
+      var queryTime = (Date.now() - startTime) / 1000.0;
+      this.rspInfo = 'Error in '+queryTime + 's';
+      this.reportError("get DS", err);
     });
   }
 
-  onRefresh() {
-    if( this.isShowCurrentQueries() ) {
-      this.updateShowQueries();
+  private reportError(src: string, err: any) {
+    console.log( "Error", src, err );
+    this.loading = false;
+    this.clickableQuery = false;
+    if(err.data) {
+      this.error = err.data.message;
+      this.inspector = {error: err};
+      this.rsp = err.data;
+    }
+    else if(err.message) {
+      this.error = err.message;
     }
     else {
-      if(!this.isPostQuery()) {
-        this.doSubmit();
-      }
+      this.error = err;
     }
   }
 }

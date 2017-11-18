@@ -30,6 +30,8 @@ grunt
 
 ##### v0.0.5 (not released yet)
 - Adding more debug query templates
+- support $timeFilter in query
+
 
 
 ##### v0.0.4

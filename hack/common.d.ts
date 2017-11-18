@@ -131,6 +131,9 @@ declare module 'app/plugins/sdk' {
     containerHeight: any;
     events: any;
     timing: any;
+    loading: boolean;
+
+subTabIndex: number; // ???
 
     constructor($scope: any, $injector: any);
 
@@ -161,7 +164,59 @@ declare module 'app/plugins/sdk' {
     getInfoContent(options: any): void;
     openInspector(): void;
   }
-  export class MetricsPanelCtrl{}
+  export class MetricsPanelCtrl extends PanelCtrl {
+    scope: any;
+    datasource: any;
+    datasourceName: any;
+    $q: any;
+    $timeout: any;
+    datasourceSrv: any;
+    timeSrv: any;
+    templateSrv: any;
+    timing: any;
+    range: any;
+    interval: any;
+    intervalMs: any;
+    resolution: any;
+    timeInfo: any;
+    skipDataOnInit: boolean;
+    dataStream: any;
+    dataSubscription: any;
+    dataList: any;
+    nextRefId: string;
+
+    constructor($scope, $injector);
+
+    private onPanelTearDown(): void;
+
+    private onInitMetricsPanelEditMode(): void;
+
+    private onMetricsPanelRefresh(): void;
+
+    setTimeQueryStart(): void;
+
+    setTimeQueryEnd(): void;
+
+    updateTimeRange(datasource?): void;
+
+    calculateInterval(): void;
+
+    applyPanelTimeOverrides(): void;
+
+    issueQueries(datasource): void;
+
+    handleQueryResult(result): void;
+
+    handleDataStream(stream): void;
+
+    setDatasource(datasource): void;
+
+    addQuery(target): void;
+
+    removeQuery(target): void;
+
+    moveQuery(target, direction): void;
+  }
   export class QueryCtrl{
     constructor($scope:any, $injector: any);
     target: any;

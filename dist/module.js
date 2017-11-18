@@ -28,21 +28,19 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
             InfluxAdminCtrl = (function (_super) {
                 __extends(InfluxAdminCtrl, _super);
                 /** @ngInject **/
-                function InfluxAdminCtrl($scope, $injector, templateSrv, $http, uiSegmentSrv, datasourceSrv) {
+                function InfluxAdminCtrl($scope, $injector, $http, uiSegmentSrv) {
                     var _this = this;
                     _super.call(this, $scope, $injector);
-                    this.templateSrv = templateSrv;
                     this.$http = $http;
                     this.uiSegmentSrv = uiSegmentSrv;
-                    this.datasourceSrv = datasourceSrv;
-                    this.loading = false; // should be in base PanelCtrl???
                     this.defaults = {
                         mode: 'current',
                         query: 'SHOW DIAGNOSTICS',
                         database: null,
                         time: 'YYYY-MM-DDTHH:mm:ssZ',
                         refresh: false,
-                        refreshInterval: 1200
+                        refreshInterval: 1200,
+                        scopedVars: {} // needed for timeFilter
                     };
                     this.commonQueries = {
                         cPd: 'SELECT numSeries FROM "_internal".."database" WHERE time > now() - 10s GROUP BY "database" ORDER BY desc LIMIT 1',
@@ -51,7 +49,6 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         createadmin: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\' WITH ALL PRIVILEGES',
                     };
                     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
-                    this.events.on('refresh', this.onRefresh.bind(this));
                     this.writing = false;
                     this.history = [];
                     // defaults configs
@@ -91,7 +88,25 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                 InfluxAdminCtrl.prototype.isShowCurrentQueries = function () {
                     return this.panel.mode == 'current';
                 };
+                // This gets called at each 'refresh'
+                InfluxAdminCtrl.prototype.issueQueries = function (datasource) {
+                    if (this.isShowCurrentQueries()) {
+                        this.updateShowQueries();
+                    }
+                    else {
+                        if (!this.isPostQuery()) {
+                            this.doSubmit();
+                        }
+                    }
+                    // Return empty results
+                    return null; //this.$q.when( [] );
+                };
+                // Overrides the default handling
+                InfluxAdminCtrl.prototype.handleQueryResult = function (result) {
+                    console.log('handleQueryResult', result);
+                };
                 InfluxAdminCtrl.prototype.onInitEditMode = function () {
+                    this.editorTabs.splice(1, 1); // remove the 'Metrics Tab'
                     this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/partials/editor.html', 1);
                     this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/partials/write.html', 2);
                     this.editorTabIndex = 1;
@@ -336,7 +351,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     }
                     else if (this.panel.query.startsWith('SHOW FIELD KEYS FROM "')) {
                         var str = this.panel.query.split(/"/)[1];
-                        this.setQuery('SELECT "' + res + '" FROM "' + str + '" ORDER BY time desc LIMIT 10');
+                        this.setQuery('SELECT "' + res + '" FROM "' + str + '" WHERE $timeFilter LIMIT 10');
                     }
                     return;
                 };
@@ -368,13 +383,15 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                     if (this.history.length > 15) {
                         this.history.pop();
                     }
-                    this.q = this.templateSrv.replace(q, this.panel.scopedVars);
                     var startTime = Date.now();
                     this.error = null;
                     this.inspector = null;
                     this.clickableQuery = false;
                     this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         _this.ds = ds;
+                        var timeFilter = ds.getTimeFilter({ rangeRaw: _this.range.raw });
+                        _this.panel.scopedVars.timeFilter = { value: timeFilter };
+                        _this.q = _this.templateSrv.replace(q, _this.panel.scopedVars);
                         var opts = {};
                         if (ds.allowDatabaseQuery && _this.panel.queryDB && _this.panel.database) {
                             opts.database = _this.panel.database;
@@ -427,40 +444,36 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             else {
                                 _this.rspInfo = "No Results in " + queryTime + "s";
                             }
-                            //console.log('Finished processing', Date.now());
                         }).catch(function (err) {
-                            _this.loading = false;
-                            _this.clickableQuery = false;
-                            if (err.data) {
-                                _this.error = err.data.message;
-                                _this.inspector = { error: err };
-                                _this.rsp = err.data;
-                            }
-                            else if (err.message) {
-                                _this.error = err.message;
-                            }
-                            else {
-                                _this.error = err;
-                            }
                             var queryTime = (Date.now() - startTime) / 1000.0;
-                            _this.rspInfo = 'Error in ' + queryTime + 's';
-                            console.log('doSubmit error', err, _this);
+                            _this.rspInfo = 'Query in ' + queryTime + 's';
+                            _this.reportError("ds._seriesQuery", err);
                         });
+                    }).catch(function (err) {
+                        var queryTime = (Date.now() - startTime) / 1000.0;
+                        _this.rspInfo = 'Error in ' + queryTime + 's';
+                        _this.reportError("get DS", err);
                     });
                 };
-                InfluxAdminCtrl.prototype.onRefresh = function () {
-                    if (this.isShowCurrentQueries()) {
-                        this.updateShowQueries();
+                InfluxAdminCtrl.prototype.reportError = function (src, err) {
+                    console.log("Error", src, err);
+                    this.loading = false;
+                    this.clickableQuery = false;
+                    if (err.data) {
+                        this.error = err.data.message;
+                        this.inspector = { error: err };
+                        this.rsp = err.data;
+                    }
+                    else if (err.message) {
+                        this.error = err.message;
                     }
                     else {
-                        if (!this.isPostQuery()) {
-                            this.doSubmit();
-                        }
+                        this.error = err;
                     }
                 };
                 InfluxAdminCtrl.templateUrl = 'partials/module.html';
                 return InfluxAdminCtrl;
-            })(sdk_1.PanelCtrl);
+            })(sdk_1.MetricsPanelCtrl);
             exports_1("PanelCtrl", InfluxAdminCtrl);
         }
     }

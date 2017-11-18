@@ -1,10 +1,8 @@
 /// <reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
-import { PanelCtrl } from 'app/plugins/sdk';
-declare class InfluxAdminCtrl extends PanelCtrl {
-    private templateSrv;
+import { MetricsPanelCtrl } from 'app/plugins/sdk';
+declare class InfluxAdminCtrl extends MetricsPanelCtrl {
     private $http;
     private uiSegmentSrv;
-    private datasourceSrv;
     static templateUrl: string;
     writing: boolean;
     history: Array<any>;
@@ -13,7 +11,6 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     ds: any;
     queryInfo: any;
     queryRefresh: any;
-    loading: boolean;
     clickableQuery: boolean;
     rsp: any;
     rspInfo: string;
@@ -26,11 +23,14 @@ declare class InfluxAdminCtrl extends PanelCtrl {
         time: string;
         refresh: boolean;
         refreshInterval: number;
+        scopedVars: {};
     };
     /** @ngInject **/
-    constructor($scope: any, $injector: any, templateSrv: any, $http: any, uiSegmentSrv: any, datasourceSrv: any);
+    constructor($scope: any, $injector: any, $http: any, uiSegmentSrv: any);
     isShowQueryWindow(): boolean;
     isShowCurrentQueries(): boolean;
+    issueQueries(datasource: any): any;
+    handleQueryResult(result: any): void;
     onInitEditMode(): void;
     writeData(): any;
     askToKillQuery(qinfo: any): void;
@@ -58,6 +58,6 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     isPostQuery(): boolean;
     onQueryChanged(): void;
     doSubmit(): void;
-    onRefresh(): void;
+    private reportError(src, err);
 }
 export { InfluxAdminCtrl as PanelCtrl };
