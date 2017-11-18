@@ -289,6 +289,13 @@ class InfluxAdminCtrl extends PanelCtrl {
     return this.history;
   }
 
+  commonQueries = {
+    cPd: 'SELECT numSeries FROM "_internal".."database" WHERE time > now() - 10s GROUP BY "database" ORDER BY desc LIMIT 1',
+    cAd: 'SELECT sum(numSeries) AS "total_series" FROM "_internal".."database" WHERE time > now() - 10s',
+    createuser: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\'',
+    createadmin: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\' WITH ALL PRIVILEGES',
+  };
+
   getQueryTemplates() {
     return [
       { text: 'Show Databases',  click: "ctrl.setQuery( 'SHOW DATABASES' );" },
@@ -310,10 +317,12 @@ class InfluxAdminCtrl extends PanelCtrl {
       { text: 'Drop Continuous Query',   click: "ctrl.setQuery( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );" },
       { text: '--' },
       { text: 'Show Users',        click: "ctrl.setQuery( 'SHOW USERS' );" },
-  //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
-  //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
+      { text: 'Create User',       click: "ctrl.setQuery( ctrl.commonQueries.createuser );" },
+      { text: 'Create Admin User', click: "ctrl.setQuery( ctrl.commonQueries.createadmin );" },
       { text: 'Drop User',         click: "ctrl.setQuery( 'DROP USER &quot;username&quot;' );" },
       { text: '--' },
+      { text: 'Series cardinality',        click: "ctrl.setQuery( ctrl.commonQueries.cPd );" },
+      { text: 'Series cardinality (all)',  click: "ctrl.setQuery( ctrl.commonQueries.cAd );" },
       { text: 'Show Stats',       click: "ctrl.setQuery( 'SHOW STATS' );" },
       { text: 'Show Diagnostics', click: "ctrl.setQuery( 'SHOW DIAGNOSTICS' );" }
     ];
@@ -408,46 +417,47 @@ class InfluxAdminCtrl extends PanelCtrl {
       }
 
       this.loading = true;
+      this.rspInfo = "...";
+
       ds._seriesQuery( this.q, opts ).then( (data) => {
+
         this.loading = false;
         this.clickableQuery = this.isClickableQuery();
         var rowCount = 0;
         var seriesCount = 0;
         var queryTime = (Date.now() - startTime) / 1000.0;
 
-       // console.log('GOT result', startTime, Date.now(), queryTime);
-
         // Process the timestamps
         _.forEach(data.results, (query) => {
           _.forEach(query, (res) => {
-            _.forEach(res, (series) => {
-              if( series.columns && series.columns[0] == 'time') {
-                _.forEach(series.values, (row) => {
-                  row[0] = moment(row[0]).format( this.panel.time );
-                });
-              }
-              if( series.values ) {
-                rowCount += series.values.length;
-
-                if( series.values.length == 1 && !this.clickableQuery ) { // Show rows as columns (SHOW DIAGNOSTICS)
-                  series.rowsAsCols = [];
-                  _.forEach(series.columns, (col, idx) => {
-                    let xform = [col];
-                    _.forEach(series.values, (row) => {
-                      xform.push( row[idx] );
-                    });
-                    series.rowsAsCols.push(xform);
+            if(_.isArray(res)) {
+              _.forEach(res, (series) => {
+                if( series.columns && series.columns[0] == 'time') {
+                  _.forEach(series.values, (row) => {
+                    row[0] = moment(row[0]).format( this.panel.time );
                   });
                 }
-              }
+                if( series.values ) {
+                  rowCount += series.values.length;
 
-              seriesCount++;
-            });
+                  if( series.values.length == 1 && !this.clickableQuery ) { // Show rows as columns (SHOW DIAGNOSTICS)
+                    series.rowsAsCols = [];
+                    _.forEach(series.columns, (col, idx) => {
+                      let xform = [col];
+                      _.forEach(series.values, (row) => {
+                        xform.push( row[idx] );
+                      });
+                      series.rowsAsCols.push(xform);
+                    });
+                  }
+                }
+                seriesCount++;
+              });
+            }
           });
         });
         // Set this after procesing the timestamps
         this.rsp = data;
-
         if(seriesCount>0) {
           this.rspInfo = seriesCount+ ' series, '+rowCount+' values, in ' + queryTime+'s';
         }
@@ -463,6 +473,7 @@ class InfluxAdminCtrl extends PanelCtrl {
         if(err.data) {
           this.error = err.data.message;
           this.inspector = {error: err};
+          this.rsp = err.data;
         }
         else if(err.message) {
           this.error = err.message;
@@ -470,6 +481,7 @@ class InfluxAdminCtrl extends PanelCtrl {
         else {
           this.error = err;
         }
+
 
         var queryTime = (Date.now() - startTime) / 1000.0;
         this.rspInfo = 'Error in '+queryTime + 's';

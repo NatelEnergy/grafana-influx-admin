@@ -44,6 +44,12 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         refresh: false,
                         refreshInterval: 1200
                     };
+                    this.commonQueries = {
+                        cPd: 'SELECT numSeries FROM "_internal".."database" WHERE time > now() - 10s GROUP BY "database" ORDER BY desc LIMIT 1',
+                        cAd: 'SELECT sum(numSeries) AS "total_series" FROM "_internal".."database" WHERE time > now() - 10s',
+                        createuser: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\'',
+                        createadmin: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\' WITH ALL PRIVILEGES',
+                    };
                     this.events.on('init-edit-mode', this.onInitEditMode.bind(this));
                     this.events.on('refresh', this.onRefresh.bind(this));
                     this.writing = false;
@@ -289,10 +295,12 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                         { text: 'Drop Continuous Query', click: "ctrl.setQuery( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );" },
                         { text: '--' },
                         { text: 'Show Users', click: "ctrl.setQuery( 'SHOW USERS' );" },
-                        //  { text: 'Create User',       click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD &apos;password&apos;" },
-                        //  { text: 'Create Admin User', click: "ctrl.query = 'CREATE USER &quot;username&quot; WITH PASSWORD 'password' WITH ALL PRIVILEGES" },
+                        { text: 'Create User', click: "ctrl.setQuery( ctrl.commonQueries.createuser );" },
+                        { text: 'Create Admin User', click: "ctrl.setQuery( ctrl.commonQueries.createadmin );" },
                         { text: 'Drop User', click: "ctrl.setQuery( 'DROP USER &quot;username&quot;' );" },
                         { text: '--' },
+                        { text: 'Series cardinality', click: "ctrl.setQuery( ctrl.commonQueries.cPd );" },
+                        { text: 'Series cardinality (all)', click: "ctrl.setQuery( ctrl.commonQueries.cAd );" },
                         { text: 'Show Stats', click: "ctrl.setQuery( 'SHOW STATS' );" },
                         { text: 'Show Diagnostics', click: "ctrl.setQuery( 'SHOW DIAGNOSTICS' );" }
                     ];
@@ -376,37 +384,39 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             console.log('TODO, change the request to a POST query: ', opts);
                         }
                         _this.loading = true;
+                        _this.rspInfo = "...";
                         ds._seriesQuery(_this.q, opts).then(function (data) {
                             _this.loading = false;
                             _this.clickableQuery = _this.isClickableQuery();
                             var rowCount = 0;
                             var seriesCount = 0;
                             var queryTime = (Date.now() - startTime) / 1000.0;
-                            // console.log('GOT result', startTime, Date.now(), queryTime);
                             // Process the timestamps
                             lodash_1.default.forEach(data.results, function (query) {
                                 lodash_1.default.forEach(query, function (res) {
-                                    lodash_1.default.forEach(res, function (series) {
-                                        if (series.columns && series.columns[0] == 'time') {
-                                            lodash_1.default.forEach(series.values, function (row) {
-                                                row[0] = moment_1.default(row[0]).format(_this.panel.time);
-                                            });
-                                        }
-                                        if (series.values) {
-                                            rowCount += series.values.length;
-                                            if (series.values.length == 1 && !_this.clickableQuery) {
-                                                series.rowsAsCols = [];
-                                                lodash_1.default.forEach(series.columns, function (col, idx) {
-                                                    var xform = [col];
-                                                    lodash_1.default.forEach(series.values, function (row) {
-                                                        xform.push(row[idx]);
-                                                    });
-                                                    series.rowsAsCols.push(xform);
+                                    if (lodash_1.default.isArray(res)) {
+                                        lodash_1.default.forEach(res, function (series) {
+                                            if (series.columns && series.columns[0] == 'time') {
+                                                lodash_1.default.forEach(series.values, function (row) {
+                                                    row[0] = moment_1.default(row[0]).format(_this.panel.time);
                                                 });
                                             }
-                                        }
-                                        seriesCount++;
-                                    });
+                                            if (series.values) {
+                                                rowCount += series.values.length;
+                                                if (series.values.length == 1 && !_this.clickableQuery) {
+                                                    series.rowsAsCols = [];
+                                                    lodash_1.default.forEach(series.columns, function (col, idx) {
+                                                        var xform = [col];
+                                                        lodash_1.default.forEach(series.values, function (row) {
+                                                            xform.push(row[idx]);
+                                                        });
+                                                        series.rowsAsCols.push(xform);
+                                                    });
+                                                }
+                                            }
+                                            seriesCount++;
+                                        });
+                                    }
                                 });
                             });
                             // Set this after procesing the timestamps
@@ -424,6 +434,7 @@ System.register(['app/core/config', 'app/core/app_events', 'app/plugins/sdk', 'l
                             if (err.data) {
                                 _this.error = err.data.message;
                                 _this.inspector = { error: err };
+                                _this.rsp = err.data;
                             }
                             else if (err.message) {
                                 _this.error = err.message;

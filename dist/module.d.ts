@@ -40,6 +40,12 @@ declare class InfluxAdminCtrl extends PanelCtrl {
     configChanged(): void;
     getDBsegs(): any;
     getQueryHistory(): any[];
+    commonQueries: {
+        cPd: string;
+        cAd: string;
+        createuser: string;
+        createadmin: string;
+    };
     getQueryTemplates(): ({
         text: string;
         click: string;

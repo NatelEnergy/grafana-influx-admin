@@ -72,8 +72,8 @@
     </div>
     <div style="clear:both;"></div>
 
-    <div ng-show="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
-      <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
+    <div ng-show="ctrl.rsp.error != null" class="alert alert-error" style="margin-bottom:8px;">
+      <i class="fa fa-warning"></i> &nbsp; {{ ctrl.rsp.error }}
     </div>
 
     <div ng-repeat="res in ctrl.rsp">
@@ -83,6 +83,10 @@
           <strong>{{ msg.level }}:</strong> &nbsp; {{ msg.text }}
         </div>
 
+        <div ng-show="rrr.error != null" class="alert alert-error" style="margin-bottom:8px;">
+          <i class="fa fa-warning"></i> &nbsp; {{ rrr.error }}
+        </div>
+        
         <div ng-repeat="series in rrr.series" style="margin-bottom:20px;">
 
           <h3 class="page-heading">{{series.name}}
