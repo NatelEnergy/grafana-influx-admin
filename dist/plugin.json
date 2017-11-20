@@ -26,7 +26,7 @@
       { "name": "Write Data",      "path": "img/screenshot-write.png"   }
     ],
     "version": "0.0.5",
-    "updated": "2017-11-18"
+    "updated": "2017-11-20"
   },
 
   "dependencies": {
