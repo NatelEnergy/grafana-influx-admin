@@ -77,9 +77,9 @@
     </div>
 
     <div ng-repeat="res in ctrl.rsp">
-      <div ng-repeat="rrr in res">
+      <div ng-repeat="rrr in res track by $index">
 
-        <div ng-repeat="msg in rrr.messages" class="alert alert-error" style="margin-bottom:8px;">
+        <div ng-repeat="msg in rrr.messages track by $index" class="alert alert-error" style="margin-bottom:8px;">
           <strong>{{ msg.level }}:</strong> &nbsp; {{ msg.text }}
         </div>
 
@@ -99,8 +99,8 @@
 
 
           <table ng-show="series.rowsAsCols != null" class="grafana-options-table">
-            <tr ng-repeat="row in series.rowsAsCols">
-              <td ng-repeat="col in row" 
+            <tr ng-repeat="row in series.rowsAsCols track by $index">
+              <td ng-repeat="col in row track by $index" 
                   ng-class="$first ? 'admin-settings-section' : ''" 
                   ng-style="$first ? { width: '1px'} : {}">
                 {{ col }} &nbsp;
