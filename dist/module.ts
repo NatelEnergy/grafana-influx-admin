@@ -119,7 +119,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     this.inspector = null;
     return this.datasourceSrv.get(this.panel.datasource).then( (ds) => {
       var db = ds.database;
-      if(!_.isNil(this.panel.options.database) && ds.allowDatabaseQuery) {
+      if(!_.isNil(this.panel.database) && ds.allowDatabaseQuery) {
         db = ds.database;
       }
       this.$http({
@@ -132,6 +132,8 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       }).then((rsp) => {
         this.writing = false;
         console.log( "Wrote OK", rsp );
+        debugger;
+        
       }, err => {
         this.writing = false;
         console.log( "Wite ERROR", err );

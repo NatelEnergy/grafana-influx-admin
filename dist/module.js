@@ -107,7 +107,7 @@ System.register(['app/core/app_events', 'app/plugins/sdk', 'lodash', 'moment'], 
                     this.inspector = null;
                     return this.datasourceSrv.get(this.panel.datasource).then(function (ds) {
                         var db = ds.database;
-                        if (!lodash_1.default.isNil(_this.panel.options.database) && ds.allowDatabaseQuery) {
+                        if (!lodash_1.default.isNil(_this.panel.database) && ds.allowDatabaseQuery) {
                             db = ds.database;
                         }
                         _this.$http({
@@ -120,6 +120,7 @@ System.register(['app/core/app_events', 'app/plugins/sdk', 'lodash', 'moment'], 
                         }).then(function (rsp) {
                             _this.writing = false;
                             console.log("Wrote OK", rsp);
+                            debugger;
                         }, function (err) {
                             _this.writing = false;
                             console.log("Wite ERROR", err);
