@@ -119,8 +119,7 @@ System.register(['app/core/app_events', 'app/plugins/sdk', 'lodash', 'moment'], 
                             }
                         }).then(function (rsp) {
                             _this.writing = false;
-                            console.log("Wrote OK", rsp);
-                            debugger;
+                            console.log("Wrote OK", rsp.headers());
                         }, function (err) {
                             _this.writing = false;
                             console.log("Wite ERROR", err);

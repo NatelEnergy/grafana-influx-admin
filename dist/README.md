@@ -32,6 +32,7 @@ grunt
 - Now supports $timeFilter in query
 - Now supports datasource defined as a template variable 
 - Added more debug query templates
+- Fix write request bug
 
 
 ##### v0.0.4

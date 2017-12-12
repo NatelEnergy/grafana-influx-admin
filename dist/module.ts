@@ -131,9 +131,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
         }
       }).then((rsp) => {
         this.writing = false;
-        console.log( "Wrote OK", rsp );
-        debugger;
-        
+        console.log( "Wrote OK", rsp.headers() );
       }, err => {
         this.writing = false;
         console.log( "Wite ERROR", err );
