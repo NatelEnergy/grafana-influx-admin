@@ -28,11 +28,12 @@ grunt
 
 #### Changelog
 
-##### v0.0.5 (not released yet)
+##### v0.0.5
 - Now supports $timeFilter in query
 - Now supports datasource defined as a template variable 
 - Added more debug query templates
 - Fix write request bug
+- Support Grafana 5+
 
 
 ##### v0.0.4

@@ -4,6 +4,7 @@ declare class InfluxAdminCtrl extends MetricsPanelCtrl {
     private $http;
     private uiSegmentSrv;
     static templateUrl: string;
+    static scrollable: boolean;
     writing: boolean;
     history: Array<any>;
     dbSeg: any;
@@ -22,6 +23,7 @@ declare class InfluxAdminCtrl extends MetricsPanelCtrl {
         time: string;
         refresh: boolean;
         refreshInterval: number;
+        allowDatabaseQuery: boolean;
     };
     /** @ngInject **/
     constructor($scope: any, $injector: any, $http: any, uiSegmentSrv: any);

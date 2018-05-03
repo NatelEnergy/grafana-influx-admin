@@ -1,10 +1,10 @@
-
+<div>
   <div ng-show="ctrl.isShowCurrentQueries()">
     <div ng-show="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
       <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
     </div>
 
-    <div class="search-results-container" ng-style="{height: ctrl.height, padding:'0px'}">
+    <div class="search-results-container" ng-style="{padding:'0px'}">
       <a ng-repeat="qinfo in ctrl.queryInfo.queries | orderBy:'-secs'"
         ng-click="ctrl.askToKillQuery( qinfo )"
         class="search-item pointer"
@@ -36,9 +36,7 @@
           </span>
         </span>
       </div>
-
     </div>
-
   </div>
   <div ng-show="ctrl.isShowQueryWindow()">
 
@@ -57,7 +55,7 @@
         </input>
 
         <metric-segment
-          ng-show="ctrl.panel.queryDB"
+          ng-show="ctrl.panel.allowDatabaseQuery"
           segment="ctrl.dbSeg"
           get-options="ctrl.getDBsegs()"
           on-change="ctrl.dbChanged()"></metric-segment>
@@ -131,5 +129,7 @@
         </div>
       </div>
     </div>
+
+</div>
 
 </div>

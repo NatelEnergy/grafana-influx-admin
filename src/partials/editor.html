@@ -60,12 +60,16 @@
       &nbsp;&nbsp; {{ ctrl.ds.database }}
     </div>
 
-    <gf-form-switch  ng-show="ctrl.ds.allowDatabaseQuery"
-      class="gf-form"
-      label="Show DB"
-      label-class="gf-form-label width-8"
-      checked="ctrl.panel.queryDB"
-      on-change="ctrl.configChanged()"></gf-form-switch>
+    <div class="gf-form">
+      <gf-form-switch
+          class="gf-form"
+          label="Select DB"
+          label-class="gf-form-label width-8"
+          checked="ctrl.panel.allowDatabaseQuery"
+          on-change="ctrl.configChanged()"></gf-form-switch>
+        
+        &nbsp;<span>{{ ctrl.panel.database }}</span>
+    </div>
 
     <div class="gf-form">
       <span class="gf-form-label width-8">Time Format</span>
