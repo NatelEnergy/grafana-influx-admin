@@ -1,6 +1,6 @@
 <div>
-  <div ng-show="ctrl.isShowCurrentQueries()">
-    <div ng-show="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
+  <div ng-if="ctrl.isShowCurrentQueries()">
+    <div ng-if="ctrl.error != null" class="alert alert-error" style="margin-bottom:8px;">
       <i class="fa fa-warning"></i> &nbsp; {{ ctrl.error }}
     </div>
 
@@ -16,10 +16,10 @@
         <span class="label label-tag" style="background-color: rgb(109, 31, 98); border-color: rgb(147, 69, 136); margin-right:5px;">
           {{ qinfo.time }}
         </span>
-        <span class="label label-tag" ng-show="qinfo.status.length > 0" style="background-color: rgb(137, 15, 2); border-color: rgb(175, 53, 40); margin-right:5px;">
+        <span class="label label-tag" ng-if="qinfo.status.length > 0" style="background-color: rgb(137, 15, 2); border-color: rgb(175, 53, 40); margin-right:5px;">
           {{ qinfo.status }}
         </span>
-        <span class="label label-tag" ng-show="qinfo.db.length > 0" style="background-color: rgb(117, 117, 117); border-color: rgb(155, 155, 155); margin-right:5px;">
+        <span class="label label-tag" ng-if="qinfo.db.length > 0" style="background-color: rgb(117, 117, 117); border-color: rgb(155, 155, 155); margin-right:5px;">
           {{ qinfo.db }}
         </span>
         <span class="search-result-link">
@@ -38,7 +38,7 @@
       </div>
     </div>
   </div>
-  <div ng-show="ctrl.isShowQueryWindow()">
+  <div ng-if="ctrl.isShowQueryWindow()">
 
     <form class="gf-form" ng-submit="ctrl.onSubmit()">
         <a class="gf-form-label tight-form-func dropdown-toggle"
@@ -55,7 +55,7 @@
         </input>
 
         <metric-segment
-          ng-show="ctrl.panel.allowDatabaseQuery"
+          ng-if="ctrl.panel.allowDatabaseQuery"
           segment="ctrl.dbSeg"
           get-options="ctrl.getDBsegs()"
           on-change="ctrl.dbChanged()"></metric-segment>
@@ -70,7 +70,7 @@
     </div>
     <div style="clear:both;"></div>
 
-    <div ng-show="ctrl.rsp.error != null" class="alert alert-error" style="margin-bottom:8px;">
+    <div ng-if="ctrl.rsp.error != null" class="alert alert-error" style="margin-bottom:8px;">
       <i class="fa fa-warning"></i> &nbsp; {{ ctrl.rsp.error }}
     </div>
 
@@ -81,7 +81,7 @@
           <strong>{{ msg.level }}:</strong> &nbsp; {{ msg.text }}
         </div>
 
-        <div ng-show="rrr.error != null" class="alert alert-error" style="margin-bottom:8px;">
+        <div ng-if="rrr.error != null" class="alert alert-error" style="margin-bottom:8px;">
           <i class="fa fa-warning"></i> &nbsp; {{ rrr.error }}
         </div>
         
@@ -96,7 +96,7 @@
           </h3>
 
 
-          <table ng-show="series.rowsAsCols != null" class="grafana-options-table">
+          <table ng-if="series.rowsAsCols != null" class="grafana-options-table">
             <tr ng-repeat="row in series.rowsAsCols track by $index">
               <td ng-repeat="col in row track by $index" 
                   ng-class="$first ? 'admin-settings-section' : ''" 
@@ -116,10 +116,10 @@
 
             <tr ng-repeat="row in series.values track by $index">
               <td ng-repeat="col in row track by $index">
-                <span ng-show="!ctrl.clickableQuery">
+                <span ng-if="!ctrl.clickableQuery">
                   {{ col }} &nbsp;
                 </span>
-                <a ng-show="ctrl.clickableQuery" ng-click="ctrl.onClickedResult(col)">
+                <a ng-if="ctrl.clickableQuery" ng-click="ctrl.onClickedResult(col)">
                   {{ col }} &nbsp;
                 </span>
               </td>
