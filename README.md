@@ -1,5 +1,9 @@
 ## InfluxDB admin
 
+[![CircleCI](https://circleci.com/gh/NatelEnergy/grafana-influx-admin/tree/master.svg?style=svg)](https://circleci.com/gh/NatelEnergy/grafana-influx-admin/tree/master)
+[![dependencies Status](https://david-dm.org/NatelEnergy/grafana-influx-admin/status.svg)](https://david-dm.org/NatelEnergy/grafana-influx-admin)
+[![devDependencies Status](https://david-dm.org/NatelEnergy/grafana-influx-admin/dev-status.svg)](https://david-dm.org/NatelEnergy/grafana-influx-admin?type=dev)
+
 This panel duplicates features from the now depricated [Web Admin Interface](https://docs.influxdata.com/influxdb/v1.2/tools/web_admin/).
 
 This panel lets you see the currently running queries and easily kill them.
@@ -25,6 +29,11 @@ grunt
 ```
 
 #### Changelog
+
+##### v0.0.6 (unreleased)
+
+* Removing `dist` from the master branch
+* adding circleci build
 
 ##### v0.0.5
 
