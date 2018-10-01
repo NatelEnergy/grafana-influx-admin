@@ -231,8 +231,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       this.loading = true;
       this.error = null;
 
-      ds
-        ._seriesQuery('SHOW QUERIES', this.panel.options)
+      ds._seriesQuery('SHOW QUERIES', this.panel.options)
         .then(data => {
           var temp = [];
           let values = data.results[0].series[0].values;
@@ -307,13 +306,14 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   }
 
   // This seems to be required to get the dropdown to be properly initalized
-  private initEditorDS() {
+  initEditorDS() {
     this.getDatasources().then(dss => {
       _.forEach(dss, ds => {
         if (ds.name == this.panel.datasource) {
           this.datasourceChanged(ds);
           return false;
         }
+        return true;
       });
     });
   }
@@ -341,7 +341,8 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     this.setDatasource(opt.datasource);
   }
 
-  private getDBsegs() {
+  // Called from angular
+  getDBsegs() {
     return this.datasourceSrv.get(this.panel.datasource).then(ds => {
       return ds
         .metricFindQuery('SHOW DATABASES')
@@ -548,8 +549,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
         this.loading = true;
         this.rspInfo = '...';
 
-        ds
-          ._seriesQuery(this.q, opts)
+        ds._seriesQuery(this.q, opts)
           .then(data => {
             this.loading = false;
             this.clickableQuery = this.isClickableQuery();
