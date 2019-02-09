@@ -8,22 +8,25 @@
     "author": {
       "name": "Natel Energy"
     },
-    "keywords": [ "influxdb", "admin" ],
+    "keywords": ["influxdb", "admin"],
     "logos": {
       "small": "img/influx_admin_logo.svg",
       "large": "img/influx_admin_logo.svg"
     },
     "links": [
       {"name": "Project site", "url": "https://github.com/NatelEnergy/grafana-influx-admin"},
-      {"name": "MIT License",  "url": "https://github.com/NatelEnergy/grafana-influx-admin/blob/master/LICENSE"},
+      {
+        "name": "MIT License",
+        "url": "https://github.com/NatelEnergy/grafana-influx-admin/blob/master/LICENSE"
+      },
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
     "screenshots": [
-      { "name": "Current Queries", "path": "img/screenshot-current.png" },
-      { "name": "Kill Query",      "path": "img/screenshot-kill.png"    },
-      { "name": "Query Window",    "path": "img/screenshot-query.png"   },
-      { "name": "Options",         "path": "img/screenshot-options.png" },
-      { "name": "Write Data",      "path": "img/screenshot-write.png"   }
+      {"name": "Current Queries", "path": "img/screenshot-current.png"},
+      {"name": "Kill Query", "path": "img/screenshot-kill.png"},
+      {"name": "Query Window", "path": "img/screenshot-query.png"},
+      {"name": "Options", "path": "img/screenshot-options.png"},
+      {"name": "Write Data", "path": "img/screenshot-write.png"}
     ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
@@ -31,6 +34,6 @@
 
   "dependencies": {
     "grafanaVersion": "4.6.x",
-    "plugins": [ ]
+    "plugins": []
   }
 }

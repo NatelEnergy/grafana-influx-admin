@@ -7,10 +7,9 @@
     "dev": "webpack --mode development",
     "watch": "webpack --mode development --watch",
     "test": "jest --config jest.config.js",
-    "release": "node release.js",
     "precommit": "pretty-quick --staged",
     "lint": "tslint -c tslint.json --project tsconfig.json",
-    "pretty": "prettier --write src/**/*.ts"
+    "format": "prettier-eslint --write \"src/**/*.{ts,tsx,json,css,js,jsx}\""
   },
   "author": "ryantxu",
   "license": "MIT",
@@ -25,13 +24,16 @@
     "type": "git",
     "url": "https://github.com/NatelEnergy/grafana-influx-admin.git"
   },
+  "lint-staged": {
+    "src/**/*.{ts,tsx,json,css,js,jsx}": [
+      "prettier-eslint"
+    ]
+  },
   "prettier": {
-    "singleQuote": true,
     "trailingComma": "es5",
-    "useTabs": false,
-    "printWidth": 90,
+    "singleQuote": true,
     "bracketSpacing": false,
-    "semi": true
+    "printWidth": 100
   },
   "dependencies": {
     "jquery": "^3.2.1",
@@ -39,7 +41,6 @@
     "moment": "^2.22.1"
   },
   "devDependencies": {
-    "grafana-sdk-mocks": "github:ryantxu/grafana-sdk-mocks",
     "@types/jest": "^23.3.1",
     "@types/lodash": "^4.14.74",
     "babel-core": "^6.26.3",
@@ -49,15 +50,20 @@
     "clean-webpack-plugin": "^0.1.19",
     "copy-webpack-plugin": "^4.5.1",
     "css-loader": "^1.0.0",
-    "replace-in-file-webpack-plugin": "^1.0.6",
+    "grafana-sdk-mocks": "github:ryantxu/grafana-sdk-mocks",
     "jest": "^23.0.1",
     "ng-annotate-webpack-plugin": "^0.3.0",
+    "release-it": "^10",
+    "prettier": "^1.15.3",
+    "prettier-eslint": "^8.8.0",
+    "prettier-eslint-cli": "^4.7.0",
+    "pretty-quick": "^1.10.0",
+    "replace-in-file-webpack-plugin": "^1.0.6",
     "style-loader": "^0.22",
-    "prettier": "^1.14",
-    "pretty-quick": "^1.4.1",
     "ts-jest": "^23",
     "ts-loader": "^4.3.0",
     "typescript": "^3",
+    "uglifyjs-webpack-plugin": "^2.0.1",
     "webpack": "^4.9.1",
     "webpack-cli": "^3.1"
   }

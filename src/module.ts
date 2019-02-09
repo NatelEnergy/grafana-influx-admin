@@ -106,11 +106,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
   onInitEditMode() {
     this.editorTabs.splice(1, 1); // remove the 'Metrics Tab'
-    this.addEditorTab(
-      'Options',
-      'public/plugins/natel-influx-admin-panel/partials/editor.html',
-      1
-    );
+    this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/partials/editor.html', 1);
     this.addEditorTab(
       'Write Data',
       'public/plugins/natel-influx-admin-panel/partials/write.html',
@@ -266,11 +262,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           }, 100);
 
           // Check if we should refresh the view
-          if (
-            this.isShowCurrentQueries() &&
-            this.panel.refresh &&
-            this.panel.refreshInterval > 0
-          ) {
+          if (this.isShowCurrentQueries() && this.panel.refresh && this.panel.refreshInterval > 0) {
             this.queryRefresh = this.$timeout(() => {
               this.updateShowQueries();
             }, this.panel.refreshInterval);
