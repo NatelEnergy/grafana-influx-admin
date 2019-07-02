@@ -1,9 +1,7 @@
-///<reference path="../node_modules/grafana-sdk-mocks/app/headers/common.d.ts" />
+import config from 'grafana/app/core/config';
+import appEvents from 'grafana/app/core/app_events';
 
-import config from 'app/core/config';
-import appEvents from 'app/core/app_events';
-
-import {MetricsPanelCtrl} from 'app/plugins/sdk';
+import {MetricsPanelCtrl} from 'grafana/app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
@@ -13,7 +11,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   static scrollable = true;
 
   writing: boolean;
-  history: Array<any>;
+  history: any[];
   dbSeg: any;
   ds: any;
 
@@ -22,13 +20,13 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   queryRefresh: any; // $timeout promice
 
   // Helpers for the html
-  clickableQuery: boolean;
+  clickableQuery = false;
   rsp: any; // the raw response from InfluxDB
-  rspInfo: string;
+  rspInfo = '';
 
   // This is set in the form
-  writeDataText: string;
-  q: string;
+  writeDataText = '';
+  q = '';
 
   defaults = {
     mode: 'current', // 'write', 'query'
@@ -40,7 +38,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     allowDatabaseQuery: true,
   };
 
-  /** @ngInject **/
+  /** @ngInject */
   constructor($scope, $injector, private $http, private uiSegmentSrv) {
     super($scope, $injector);
 
@@ -55,7 +53,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     // defaults configs
     _.defaultsDeep(this.panel, this.defaults);
 
-    var txt = this.panel.database;
+    let txt = this.panel.database;
     if (_.isNil(txt)) {
       txt = '(default)';
     }
@@ -78,11 +76,11 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   }
 
   isShowQueryWindow() {
-    return this.panel.mode == 'query';
+    return this.panel.mode === 'query';
   }
 
   isShowCurrentQueries() {
-    return this.panel.mode == 'current';
+    return this.panel.mode === 'current';
   }
 
   // This gets called at each 'refresh'
@@ -121,7 +119,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     this.error = null;
     this.inspector = null;
     return this.datasourceSrv.get(this.panel.datasource).then(ds => {
-      var db = ds.database;
+      let db = ds.database;
       if (!_.isNil(this.panel.database) && this.panel.allowDatabaseQuery) {
         db = ds.database;
       }
@@ -166,27 +164,27 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     return;
   }
 
-  getSecondsFromString(durr: string): Number {
+  getSecondsFromString(durr: string): number {
     let secs = 0;
-    let parts = durr.match(/(\d*\D*)/g);
+    const parts = durr.match(/(\d*\D*)/g);
 
     _.each(parts, p => {
       if (p.length > 1) {
         let idx = p.length - 1;
-        let unit = p[idx];
+        const unit = p[idx];
         let mag = 1;
-        if (unit == 's') {
+        if (unit === 's') {
           // could be 39µs
-          if (p[p.length - 2] == 'µ') {
+          if (p[p.length - 2] === 'µ') {
             mag = 0.001;
             idx -= 1;
           }
-        } else if (unit == 'm') {
+        } else if (unit === 'm') {
           mag = 60;
-        } else if (unit == 'h') {
+        } else if (unit === 'h') {
           mag = 60 * 60;
         }
-        secs += parseInt(p.substring(0, idx)) * mag;
+        secs += parseInt(p.substring(0, idx), 10) * mag;
       }
     });
     return secs;
@@ -229,15 +227,15 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
       ds._seriesQuery('SHOW QUERIES', this.panel.options)
         .then(data => {
-          var temp = [];
-          let values = data.results[0].series[0].values;
-          if (values.length == 1 && values[0][1] === 'SHOW QUERIES') {
+          const temp: any[] = [];
+          const values = data.results[0].series[0].values;
+          if (values.length === 1 && values[0][1] === 'SHOW QUERIES') {
             // this is the query we sent!
           } else {
             _.forEach(values, res => {
               // convert the time (string) to seconds (so that sort works!)
-              let secs = this.getSecondsFromString(res[3]);
-              var status = '';
+              const secs = this.getSecondsFromString(res[3]);
+              let status = '';
               if (res.length > 3 && res[4] !== 'running') {
                 status = res[4];
               }
@@ -277,7 +275,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   dbChanged() {
     this.datasourceSrv.get(this.panel.datasource).then(ds => {
       this.ds = ds;
-      let db = this.dbSeg.value;
+      const db = this.dbSeg.value;
       if (db === ds.database || db.startsWith('(')) {
         this.panel.database = null;
       } else {
@@ -301,7 +299,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   initEditorDS() {
     this.getDatasources().then(dss => {
       _.forEach(dss, ds => {
-        if (ds.name == this.panel.datasource) {
+        if (ds.name === this.panel.datasource) {
           this.datasourceChanged(ds);
           return false;
         }
@@ -339,7 +337,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       return ds
         .metricFindQuery('SHOW DATABASES')
         .then(data => {
-          var segs = [this.uiSegmentSrv.newSegment('(' + ds.database + ')')];
+          const segs = [this.uiSegmentSrv.newSegment('(' + ds.database + ')')];
           _.forEach(data, val => {
             segs.push(this.uiSegmentSrv.newSegment(val.text));
           });
@@ -417,7 +415,9 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       {
         text: 'Create Continuous Query',
         click:
-          "ctrl.setQuery( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot; FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );",
+          "ctrl.setQuery( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; "
+          + " ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot;"
+          + " FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );",
       },
       {
         text: 'Drop Continuous Query',
@@ -449,9 +449,9 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   }
 
   isClickableQuery() {
-    let q = this.q;
+    const q = this.q;
     if (q && q.startsWith('SHOW ')) {
-      if ('SHOW DATABASES' == q && this.panel.queryDB) {
+      if ('SHOW DATABASES' === q && this.panel.queryDB) {
         return true;
       }
       if (q.startsWith('SHOW MEASUREMENTS')) {
@@ -467,21 +467,21 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   onClickedResult(res) {
     console.log('CLICKED', this.panel.query, res);
 
-    if ('SHOW DATABASES' == this.panel.query && this.panel.queryDB) {
+    if ('SHOW DATABASES' === this.panel.query && this.panel.queryDB) {
       this.panel.query = 'SHOW MEASUREMENTS';
       this.dbSeg = this.uiSegmentSrv.newSegment(res);
       this.dbChanged();
-    } else if ('SHOW MEASUREMENTS' == this.panel.query) {
+    } else if ('SHOW MEASUREMENTS' === this.panel.query) {
       this.setQuery('SHOW FIELD KEYS FROM "' + res + '"');
     } else if (this.panel.query.startsWith('SHOW FIELD KEYS FROM "')) {
-      var str = this.panel.query.split(/"/)[1];
+      const str = this.panel.query.split(/"/)[1];
       this.setQuery('SELECT "' + res + '" FROM "' + str + '" WHERE $timeFilter LIMIT 10');
     }
     return;
   }
 
   isPostQuery() {
-    var q = this.panel.query;
+    const q = this.panel.query;
     return !(q.startsWith('SELECT ') || q.startsWith('SHOW '));
   }
 
@@ -496,7 +496,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   }
 
   doSubmit() {
-    let q = this.panel.query;
+    const q = this.panel.query;
     this.history.unshift({text: q, value: q}); // Keep the template variables
     for (let i = 1; i < this.history.length; i++) {
       if (this.history[i].value === q) {
@@ -508,7 +508,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       this.history.pop();
     }
 
-    var startTime = Date.now();
+    const startTime = Date.now();
     this.error = null;
     this.inspector = null;
     this.clickableQuery = false;
@@ -520,7 +520,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           return;
         }
 
-        let timeFilter = ds.getTimeFilter({rangeRaw: this.range.raw});
+        const timeFilter = ds.getTimeFilter({rangeRaw: this.range.raw});
         let scopedVars = this.panel.scopedVars;
         if (!scopedVars) {
           scopedVars = {};
@@ -529,7 +529,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
         this.q = this.templateSrv.replace(q, scopedVars);
 
-        var opts: any = {};
+        const opts: any = {};
         if (this.panel.allowDatabaseQuery && this.panel.database) {
           opts.database = this.panel.database;
         }
@@ -545,16 +545,16 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           .then(data => {
             this.loading = false;
             this.clickableQuery = this.isClickableQuery();
-            var rowCount = 0;
-            var seriesCount = 0;
-            var queryTime = (Date.now() - startTime) / 1000.0;
+            let rowCount = 0;
+            let seriesCount = 0;
+            const queryTime = (Date.now() - startTime) / 1000.0;
 
             // Process the timestamps
             _.forEach(data.results, query => {
               _.forEach(query, res => {
                 if (_.isArray(res)) {
                   _.forEach(res, series => {
-                    if (series.columns && series.columns[0] == 'time') {
+                    if (series.columns && series.columns[0] === 'time') {
                       _.forEach(series.values, row => {
                         row[0] = moment(row[0]).format(this.panel.time);
                       });
@@ -562,11 +562,11 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
                     if (series.values) {
                       rowCount += series.values.length;
 
-                      if (series.values.length == 1 && !this.clickableQuery) {
+                      if (series.values.length === 1 && !this.clickableQuery) {
                         // Show rows as columns (SHOW DIAGNOSTICS)
                         series.rowsAsCols = [];
                         _.forEach(series.columns, (col, idx) => {
-                          let xform = [col];
+                          const xform = [col];
                           _.forEach(series.values, row => {
                             xform.push(row[idx]);
                           });
@@ -592,14 +592,14 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
             }, 100);
           })
           .catch(err => {
-            var queryTime = (Date.now() - startTime) / 1000.0;
+            const queryTime = (Date.now() - startTime) / 1000.0;
             this.rspInfo = 'Query in ' + queryTime + 's';
             this.reportError('ds._seriesQuery', err);
             this.renderingCompleted();
           });
       })
       .catch(err => {
-        var queryTime = (Date.now() - startTime) / 1000.0;
+        const queryTime = (Date.now() - startTime) / 1000.0;
         this.rspInfo = 'Error in ' + queryTime + 's';
         this.reportError('get DS', err);
       });
