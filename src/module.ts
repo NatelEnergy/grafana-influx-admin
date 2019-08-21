@@ -1,7 +1,7 @@
 import config from 'grafana/app/core/config';
 import appEvents from 'grafana/app/core/app_events';
 
-import {MetricsPanelCtrl} from 'grafana/app/plugins/sdk';
+import { MetricsPanelCtrl } from 'grafana/app/plugins/sdk';
 
 import _ from 'lodash';
 import moment from 'moment';
@@ -105,11 +105,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   onInitEditMode() {
     this.editorTabs.splice(1, 1); // remove the 'Metrics Tab'
     this.addEditorTab('Options', 'public/plugins/natel-influx-admin-panel/partials/editor.html', 1);
-    this.addEditorTab(
-      'Write Data',
-      'public/plugins/natel-influx-admin-panel/partials/write.html',
-      2
-    );
+    this.addEditorTab('Write Data', 'public/plugins/natel-influx-admin-panel/partials/write.html', 2);
     this.editorTabIndex = 1;
   }
 
@@ -139,7 +135,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           this.writing = false;
           console.log('Wite ERROR', err);
           this.error = err.data.error + ' [' + err.status + ']';
-          this.inspector = {error: err};
+          this.inspector = { error: err };
         }
       );
     });
@@ -320,7 +316,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           return false;
         })
         .map(ds => {
-          return {value: ds.value, text: ds.name, datasource: ds};
+          return { value: ds.value, text: ds.name, datasource: ds };
         })
     );
   }
@@ -354,17 +350,15 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   }
 
   commonQueries = {
-    cPd:
-      'SELECT numSeries FROM "_internal".."database" WHERE time > now() - 10s GROUP BY "database" ORDER BY desc LIMIT 1',
-    cAd:
-      'SELECT sum(numSeries) AS "total_series" FROM "_internal".."database" WHERE time > now() - 10s',
+    cPd: 'SELECT numSeries FROM "_internal".."database" WHERE time > now() - 10s GROUP BY "database" ORDER BY desc LIMIT 1',
+    cAd: 'SELECT sum(numSeries) AS "total_series" FROM "_internal".."database" WHERE time > now() - 10s',
     createuser: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\'',
     createadmin: 'CREATE USER "jdoe" WITH PASSWORD \'1337password\' WITH ALL PRIVILEGES',
   };
 
   getQueryTemplates() {
     return [
-      {text: 'Show Databases', click: "ctrl.setQuery( 'SHOW DATABASES' );"},
+      { text: 'Show Databases', click: "ctrl.setQuery( 'SHOW DATABASES' );" },
       {
         text: 'Create Database',
         click: "ctrl.setQuery( 'CREATE DATABASE &quot;db_name&quot;' );",
@@ -373,8 +367,8 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
         text: 'Drop Database',
         click: "ctrl.setQuery( 'DROP DATABASE &quot;db_name&quot;' );",
       },
-      {text: '--'},
-      {text: 'Show Measurements', click: "ctrl.setQuery( 'SHOW MEASUREMENTS' );"},
+      { text: '--' },
+      { text: 'Show Measurements', click: "ctrl.setQuery( 'SHOW MEASUREMENTS' );" },
       {
         text: 'Show Field Keys',
         click: "ctrl.setQuery( 'SHOW FIELD KEYS FROM &quot;measurement_name&quot;' );",
@@ -385,29 +379,26 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       },
       {
         text: 'Show Tag Values',
-        click:
-          "ctrl.setQuery( 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;' );",
+        click: "ctrl.setQuery( 'SHOW TAG VALUES FROM &quot;measurement_name&quot; WITH KEY = &quot;tag_key&quot;' );",
       },
       {
         text: 'Drop Measurement',
         click: "ctrl.setQuery( 'DROP MEASUREMENT &quot;measurement_name&quot;' );",
       },
-      {text: '--'},
+      { text: '--' },
       {
         text: 'Show Retention Policies',
         click: "ctrl.setQuery( 'SHOW RETENTION POLICIES ON &quot;db_name&quot;' );",
       },
       {
         text: 'Create Retention Policy',
-        click:
-          "ctrl.setQuery( 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT' );",
+        click: "ctrl.setQuery( 'CREATE RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot; DURATION 30d REPLICATION 1 DEFAULT' );",
       },
       {
         text: 'Drop Retention Policy',
-        click:
-          "ctrl.setQuery( 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;' );",
+        click: "ctrl.setQuery( 'DROP RETENTION POLICY &quot;rp_name&quot; ON &quot;db_name&quot;' );",
       },
-      {text: '--'},
+      { text: '--' },
       {
         text: 'Show Continuous Queries',
         click: "ctrl.setQuery( 'SHOW CONTINUOUS QUERIES' );",
@@ -415,31 +406,30 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
       {
         text: 'Create Continuous Query',
         click:
-          "ctrl.setQuery( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; "
-          + " ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot;"
-          + " FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );",
+          "ctrl.setQuery( 'CREATE CONTINUOUS QUERY &quot;cq_name&quot; " +
+          ' ON &quot;db_name&quot; BEGIN SELECT min(&quot;field&quot;) INTO &quot;target_measurement&quot;' +
+          " FROM &quot;current_measurement&quot; GROUP BY time(30m) END' );",
       },
       {
         text: 'Drop Continuous Query',
-        click:
-          "ctrl.setQuery( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );",
+        click: "ctrl.setQuery( 'DROP CONTINUOUS QUERY &quot;cq_name&quot; ON &quot;db_name&quot;' );",
       },
-      {text: '--'},
-      {text: 'Show Users', click: "ctrl.setQuery( 'SHOW USERS' );"},
-      {text: 'Create User', click: 'ctrl.setQuery( ctrl.commonQueries.createuser );'},
+      { text: '--' },
+      { text: 'Show Users', click: "ctrl.setQuery( 'SHOW USERS' );" },
+      { text: 'Create User', click: 'ctrl.setQuery( ctrl.commonQueries.createuser );' },
       {
         text: 'Create Admin User',
         click: 'ctrl.setQuery( ctrl.commonQueries.createadmin );',
       },
-      {text: 'Drop User', click: "ctrl.setQuery( 'DROP USER &quot;username&quot;' );"},
-      {text: '--'},
-      {text: 'Series cardinality', click: 'ctrl.setQuery( ctrl.commonQueries.cPd );'},
+      { text: 'Drop User', click: "ctrl.setQuery( 'DROP USER &quot;username&quot;' );" },
+      { text: '--' },
+      { text: 'Series cardinality', click: 'ctrl.setQuery( ctrl.commonQueries.cPd );' },
       {
         text: 'Series cardinality (all)',
         click: 'ctrl.setQuery( ctrl.commonQueries.cAd );',
       },
-      {text: 'Show Stats', click: "ctrl.setQuery( 'SHOW STATS' );"},
-      {text: 'Show Diagnostics', click: "ctrl.setQuery( 'SHOW DIAGNOSTICS' );"},
+      { text: 'Show Stats', click: "ctrl.setQuery( 'SHOW STATS' );" },
+      { text: 'Show Diagnostics', click: "ctrl.setQuery( 'SHOW DIAGNOSTICS' );" },
     ];
   }
 
@@ -497,7 +487,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
 
   doSubmit() {
     const q = this.panel.query;
-    this.history.unshift({text: q, value: q}); // Keep the template variables
+    this.history.unshift({ text: q, value: q }); // Keep the template variables
     for (let i = 1; i < this.history.length; i++) {
       if (this.history[i].value === q) {
         this.history.splice(i, 1);
@@ -520,12 +510,12 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           return;
         }
 
-        const timeFilter = ds.getTimeFilter({rangeRaw: this.range.raw});
+        const timeFilter = ds.getTimeFilter({ rangeRaw: this.range.raw });
         let scopedVars = this.panel.scopedVars;
         if (!scopedVars) {
           scopedVars = {};
         }
-        scopedVars.timeFilter = {value: timeFilter};
+        scopedVars.timeFilter = { value: timeFilter };
 
         this.q = this.templateSrv.replace(q, scopedVars);
 
@@ -582,8 +572,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
             // Set this after procesing the timestamps
             this.rsp = data;
             if (seriesCount > 0) {
-              this.rspInfo =
-                seriesCount + ' series, ' + rowCount + ' values, in ' + queryTime + 's';
+              this.rspInfo = seriesCount + ' series, ' + rowCount + ' values, in ' + queryTime + 's';
             } else {
               this.rspInfo = 'No Results in ' + queryTime + 's';
             }
@@ -611,7 +600,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
     this.clickableQuery = false;
     if (err.data) {
       this.error = err.data.message;
-      this.inspector = {error: err};
+      this.inspector = { error: err };
       this.rsp = err.data;
     } else if (err.message) {
       this.error = err.message;
@@ -621,4 +610,4 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
   }
 }
 
-export {InfluxAdminCtrl as PanelCtrl};
+export { InfluxAdminCtrl as PanelCtrl };
