@@ -4,3 +4,5 @@ node_modules
 archive.zip
 
 dist/
+
+.rpt2_cache
