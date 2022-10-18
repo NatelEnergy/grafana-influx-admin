@@ -520,7 +520,7 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
           return;
         }
 
-        let timeFilter = ds.getTimeFilter({rangeRaw: this.range.raw});
+        let timeFilter = ds.getTimeFilter({rangeRaw: this.timeSrv.timeRange().raw});
         let scopedVars = this.panel.scopedVars;
         if (!scopedVars) {
           scopedVars = {};
@@ -535,13 +535,14 @@ class InfluxAdminCtrl extends MetricsPanelCtrl {
         }
         if (this.isPostQuery()) {
           opts.method = 'POST';
-          console.log('TODO, change the request to a POST query: ', opts);
+        } else {
+          opts.method = 'GET';
         }
 
         this.loading = true;
         this.rspInfo = '...';
 
-        ds._seriesQuery(this.q, opts)
+        ds._influxRequest(opts.method, '/query', { q: this.q, epoch: 'ms' }, opts).toPromise()
           .then(data => {
             this.loading = false;
             this.clickableQuery = this.isClickableQuery();

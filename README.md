@@ -30,6 +30,12 @@ yarn build
 
 #### Changelog
 
+##### v0.0.7
+
+- Update to work on Grafana v9
+- Implement proper POST query
+- Fix dependencies
+
 ##### v0.0.6 (unreleased)
 
 - Removing `dist` from the master branch
